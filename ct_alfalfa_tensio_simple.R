@@ -3,14 +3,30 @@ require(reshape)
 library(scales)
 library(data.table)
 #SETTINGS
+tense=read.csv("tensio_cal.csv")
 foo=read.csv("C:/Campbellsci/PC200W/CR1000-AB2_Table1.csv") #path to comma-separated data file (one line header)
 bar=read.csv("C:/Campbellsci/PC200W/CR1000-AB2_Table2.dat")
 PT_id = 2:21  # Range for columns containing pressure transducer data (20 transducers)
 T_id = 43:51  # Range for columns containing temperature data (9 thermistors)
-major_x = "24 hours" #Increment between labeled gridlines
-minor_x = "2 hour"  #Increment between minor gridlines
+major_x = "3 weeks" #Increment between labeled gridlines
+minor_x = "24 hours"  #Increment between minor gridlines
 origin_time="02/15/2015 15:00"
 #origin_time="03/07/2015 15:00" #Time zero for data frames & graphs
+head(foo)
+library(soiltexture)
+textures=cbind(tense$CLAY,tense$SILT,tense$SAND)
+colnames(textures)= c("CLAY","SILT","SAND")
+geo=TT.plot(class.sys="USDA.TT")
+TT.points(textures,geo,pch=as.numeric(tense$depth=="D")+1, col=rep(c(rep(4,3),rep(3,3))))
+legend(
+  x = 80,
+  y = 90,
+  legend = c("Shallow = 60cm", "Deep = 150cm"), 
+  pt.lwd = 4,
+  pch = c(1,2),
+  col = c(3,4)
+)
+
 
 #Check Battery
 gplot(bar,aes(x=bar[,1], y=bar[,3]))+geom_point()+geom_point(aes(x=bar[,1], y=bar[,3]))

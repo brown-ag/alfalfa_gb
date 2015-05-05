@@ -1,16 +1,17 @@
 foo = read.csv("S:\\Andrew\\CampbellAlfalfa\\310315_plant-counts.csv")
 
-foo=foo[!(foo$water==0),]
+foo$bio=foo$bio*2
 
 block = factor(foo$block)
 plot=factor(foo$plot)
 subplot=factor(foo$subplot)
 water=factor(foo$water)
 time=factor(foo$day)
-
+treat=factor(foo$treat)
+plot(foo$bio~foo$finalS)
 spp=foo$finalS/foo$finalP
 bio=foo$bio
-a= aov(bio~time*water+block)
+a= lm(log10(bio)~water*time+block)
 anova(a)
 plot(a)
 plot(TukeyHSD(a,conf.level=0.95))
@@ -27,7 +28,21 @@ m=lme(spp~time*water,random=~1|block,data=foo)
 summary(m)
 
 library(lme4)
-m2=lmer(bio~time*water + (1|block) + (1|plot),data=foo)
+library(longpower)
+library(multcomp)
+w=factor(water)
+m2=lmer(log10(foo$bio)~treat+(1|block))
+m2=lmer(log10(bio)~w*time + (1|block) + (plot|subplot),data=foo)
+contrasts=matrix(c(c(3,-1,0,-1,0,-1,0),c(3,0,-1,0,-1,0,-1),c(2,-1,-1,0,0,0,0),c(2,0,0,-1,-1,0,0),c(2,0,0,0,0,-1,-1)),7)
+comparison=glht(m2,linfct=contrasts[,1])
+lmmpower(m2,pct.change=0.1,t=1:21,power=0.8)
+
+library(pwr)
+model1=lm(log10(foo$bio)~foo$treat+block)
+model1
+pwr.f2.test(8,54,0.2662/(1-0.2662))
+
+
 m1=lm(spp~time*water+block*plot,data=foo)
 m1grid=ref.grid(m1,data=foo)
 m2grid=ref.grid(m2)
