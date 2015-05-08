@@ -13,23 +13,9 @@ minor_x = "24 hours"  #Increment between minor gridlines
 origin_time="02/15/2015 15:00"
 #origin_time="03/07/2015 15:00" #Time zero for data frames & graphs
 head(foo)
-library(soiltexture)
-textures=cbind(tense$CLAY,tense$SILT,tense$SAND)
-colnames(textures)= c("CLAY","SILT","SAND")
-geo=TT.plot(class.sys="USDA.TT")
-TT.points(textures,geo,pch=as.numeric(tense$depth=="D")+1, col=rep(c(rep(4,3),rep(3,3))))
-legend(
-  x = 80,
-  y = 90,
-  legend = c("Shallow = 60cm", "Deep = 150cm"), 
-  pt.lwd = 4,
-  pch = c(1,2),
-  col = c(3,4)
-)
-
-
+library(ggplot2)
 #Check Battery
-gplot(bar,aes(x=bar[,1], y=bar[,3]))+geom_point()+geom_point(aes(x=bar[,1], y=bar[,3]))
+ggplot(bar[4:length(bar[,1]),],aes(x=bar[4:length(bar[,1]),1], y=bar[4:length(bar[,1]),3]))+geom_point()+geom_point(aes(x=bar[4:length(bar[,1]),1], y=bar[4:length(bar[,1]),3]))
 
 #Construct time series
 TIMESTAMP = as.POSIXct(strptime(foo[,1],"%m/%d/%Y %H:%M"))
