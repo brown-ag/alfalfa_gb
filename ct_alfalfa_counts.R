@@ -2,6 +2,20 @@ foo = read.csv("S:\\Andrew\\CampbellAlfalfa\\310315_plant-counts.csv")
 
 foo$bio=foo$bio*2
 
+aggregate(foo$bio,by=list(foo$block),ci,FUN=ciblock)
+
+ciblock=function(x) {
+  me=mean(x)
+  se=sd(x)/sqrt(x)
+  return(qt(.975, df=count(x)−1))
+}
+
+ggplot(foo, aes(x=foo$treat, y=foo$bio, colour=foo$block, group=foo$block)) + 
+  geom_errorbar(aes(ymin=len-ci, ymax=len+ci), colour="black", width=.1, position=pd) +
+  geom_line(position=pd) +
+  geom_point(position=pd, size=3)
+
+
 block = factor(foo$block)
 plot=factor(foo$plot)
 subplot=factor(foo$subplot)
@@ -11,7 +25,7 @@ treat=factor(foo$treat)
 plot(foo$bio~foo$finalS)
 spp=foo$finalS/foo$finalP
 bio=foo$bio
-a= lm(log10(bio)~water*time+block)
+a= lm(log10(bio)~foo$treat+block)
 anova(a)
 plot(a)
 plot(TukeyHSD(a,conf.level=0.95))
@@ -37,13 +51,16 @@ contrasts=matrix(c(c(3,-1,0,-1,0,-1,0),c(3,0,-1,0,-1,0,-1),c(2,-1,-1,0,0,0,0),c(
 comparison=glht(m2,linfct=contrasts[,1])
 lmmpower(m2,pct.change=0.1,t=1:21,power=0.8)
 
+  robmlm(
+
+
 library(pwr)
 model1=lm(log10(foo$bio)~foo$treat+block)
 model1
 pwr.f2.test(8,54,0.2662/(1-0.2662))
 
 
-m1=lm(spp~time*water+block*plot,data=foo)
+m1=lm(spp~time*water+block,data=foo)
 m1grid=ref.grid(m1,data=foo)
 m2grid=ref.grid(m2)
 plot(Anova(m1, type="II"))

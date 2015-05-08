@@ -28,6 +28,8 @@ legend(
 )
 
 
+
+
 #Check Battery
 gplot(bar,aes(x=bar[,1], y=bar[,3]))+geom_point()+geom_point(aes(x=bar[,1], y=bar[,3]))
 
@@ -56,6 +58,9 @@ df_PT=na.omit(as.data.frame(cbind(TIMESTAMPa,data[,PT_id+1])))
 df_PT[,PT_map[PT_map$depth=="S",]$id]=df_PT[ ,PT_map[PT_map$depth=="S",]$id]+(6)
 df_PT[,PT_map[PT_map$depth=="D",]$id]=df_PT[ ,PT_map[PT_map$depth=="D",]$id]+(12)
 head(df_PT[,PT_map[PT_map$depth=="D",]$id]-df_PT[,PT_map[PT_map$depth=="S",]$id])
+
+range=2000:2200
+plot(df_PT[range,1],-df_PT[range,5])
 
 cosinor_analyzer(df_PT)
 

@@ -18,7 +18,7 @@ for(u in doc.text[zipfiles]) {
 }
 
 
-origin_time="2015-02-15 15:00"
+origin_time="2015-01-26 0:00"
 origin=as.POSIXct(strptime(origin_time,"%Y-%m-%d %H:%M")) #initial time for series
 
 for(i in gsub("zip","csv",doc.text[zipfiles])) {
