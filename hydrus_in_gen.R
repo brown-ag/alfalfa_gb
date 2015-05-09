@@ -6,14 +6,14 @@ fit_template=readChar(fit_fname,file.info(fit_fname)$size)
 
 #Define the range of parameters to use for inital guesses.
 #Setting min and max equal holds that parameter constant
-disc=10 #'disc' defines the discretization within the specified min and maximum
-range_thetar=c(0.05,0.05)#c(0,0.2)
-range_thetas=c(0.50,0.50)#c(0.3,0.5)
-range_alpha1=c(0.03,0.03)#c(0,0.1)
-range_alpha2=c(0.1,0.1)
-range_n1=c(1.5,1.5)#c(1,4)
+disc=5 #'disc' defines the discretization within the specified min and maximum
+range_thetar=c(0.0727,0.0727)#c(0,0.2)
+range_thetas=c(0.4471,0.4471)#c(0.3,0.5)
+range_alpha1=c(0.0124,0.0124)#c(0,0.1)
+range_alpha2=c(0.01,0.1)
+range_n1=c(1.47,1.47)#c(1,4)
 range_n2=c(1.5,1.5)#c(1,4)
-range_ksat=c(0.1,1)#c(0.01, 1)
+range_ksat=c(0.5,2)#c(0.01, 1)
 range_l=c(0.5,0.5)#c(0,1)
 range_w2=c(0,1)
 
@@ -26,7 +26,7 @@ d_n2=seq(range_n2[1], range_n2[2], (range_n2[2]-range_n2[1])/disc)
 d_ksat=seq(range_ksat[1], range_ksat[2], (range_ksat[2]-range_ksat[1])/disc)
 d_l=seq(range_l[1], range_l[2], (range_l[2]-range_l[1])/disc)
 d_w2=seq(range_w2[1], range_w2[2], (range_w2[2]-range_w2[1])/disc)
-
+map=matrix(ncol=10)
 n=1
 for(a in d_thetar) {
   for(b in d_thetas) {
@@ -39,6 +39,7 @@ for(a in d_thetar) {
                 for(i in d_w2) {
                  dir.create(paste(".\\Simulations\\",n,sep=""))
                  makeSelectorFit(n,5,a,b,c,d,e,f,g,h,i)
+                 map=rbind(map,c(n,a,b,c,d,e,f,g,h,i))
                  n=n+1
                 }
               }
