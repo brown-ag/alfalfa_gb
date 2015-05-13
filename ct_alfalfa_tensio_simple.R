@@ -13,7 +13,7 @@ minor_x = "24 hours"  #Increment between minor gridlines
 origin_time="02/15/2015 15:00"
 #origin_time="03/07/2015 15:00" #Time zero for data frames & graphs
 head(foo)
-library(ggplot2)
+
 #Check Battery
 ggplot(bar[4:length(bar[,1]),],aes(x=bar[4:length(bar[,1]),1], y=bar[4:length(bar[,1]),3]))+geom_point()+geom_point(aes(x=bar[4:length(bar[,1]),1], y=bar[4:length(bar[,1]),3]))
 
@@ -42,6 +42,9 @@ df_PT=na.omit(as.data.frame(cbind(TIMESTAMPa,data[,PT_id+1])))
 df_PT[,PT_map[PT_map$depth=="S",]$id]=df_PT[ ,PT_map[PT_map$depth=="S",]$id]+(6)
 df_PT[,PT_map[PT_map$depth=="D",]$id]=df_PT[ ,PT_map[PT_map$depth=="D",]$id]+(12)
 head(df_PT[,PT_map[PT_map$depth=="D",]$id]-df_PT[,PT_map[PT_map$depth=="S",]$id])
+
+range=2000:2200
+plot(df_PT[range,1],-df_PT[range,5])
 
 cosinor_analyzer(df_PT)
 
