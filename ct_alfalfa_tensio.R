@@ -1,9 +1,11 @@
-require(ggplot2)
+
+equire(ggplot2)
 require(reshape)
 library(scales)
 library(data.table)
 #SETTINGS
 foo=read.csv("C:/Campbellsci/PC200W/CR1000-AB2_Table1.csv") #path to comma-separated data file (one line header)
+events=read.csv("../alfalfa_gb_git//ct_alfalfa_events.csv")
 bar=read.csv("C:/Campbellsci/PC200W/CR1000-AB2_Table2.csv")
 PT_id = 2:21  # Range for columns containing pressure transducer data (20 transducers)
 T_id = 43:51  # Range for columns containing temperature data (9 thermistors)
@@ -22,6 +24,8 @@ abline(batfit)
 
 #Construct time series
 TIMESTAMP = as.POSIXct(strptime(foo[,1],"%m/%d/%Y %H:%M"))
+event_start = as.POSIXct(strptime(events[,4],"%m/%d/%Y %H:%M"))
+event_end = as.POSIXct(strptime(events[,5],"%m/%d/%Y %H:%M"))
 origin=as.POSIXct(strptime(origin_time,"%m/%d/%Y %H:%M")) #initial time for series
 tindex=seq(1,length(TIMESTAMP))*15
 hour=as.numeric(substr(TIMESTAMP,12,13))#
@@ -35,6 +39,8 @@ day=data.frame(dindex,rad_time)
 head(data[day[,1]==4,])
 TIMESTAMPa=TIMESTAMP[keep]
 TIMESTAMPn=seq(0,length(TIMESTAMPa))*15
+
+
 
 #Remove convert to mBar, remove NaN values and values prior to specified origin
 foo2=foo
@@ -99,6 +105,14 @@ fooober=data.frame(df_PTn)
 shallowtemp=df_T[T_map$depth=="5cm",3]
 df_PTn=data.frame(df_PTn,shallowtemp)
 
+#Percentage saturation (for extension blurb)
+SATp=df_PT[2:20]
+
+convertToSE=function(x,alpha,n) {
+  return((1+(alpha*x)^n)^(-(1-(1/n))))
+}
+
+
 radian_time=((TIMESTAMPn/1440)%%1)*2*pi
 
 day_time=floor((TIMESTAMPn/1440))
@@ -118,12 +132,41 @@ for(i in seq(1,20,by=4)) {
     scale_x_datetime(breaks = major_x, minor_breaks = minor_x, labels=date_format("%d/%m %H:%M"))+
     scale_colour_discrete(name="Depth")+
     theme_classic()+
-    theme(panel.grid.major=element_line(size=.5, color = "dark grey"),panel.grid.minor=element_line(size=.2, color = "light grey"));
+    theme(panel.grid.major=element_line(size=.5, color = "dark grey"),panel.grid.minor=element_line(size=.2, color = "light grey"))+
+    geom_rect(data=df_PT, mapping=aes(xmin=event_start[16],xmax=event_end[16],ymin=0,ymax=1000),alpha=0.5)
   print(d)
   print(j)
   j=j+1
 }
 i=1
+
+
+#graph for extension blurb
+j=1
+i=1
+t=list()
+t=factor(c("2 ft", "2 ft", "5 ft", "5 ft"))
+origin_time2="03/16/2015 00:00"
+endtime="03/23/2015 00:00"
+origin2=as.POSIXct(strptime(origin_time2,"%m/%d/%Y %H:%M")) #initial time for series
+endtime2=as.POSIXct(strptime(endtime,"%m/%d/%Y %H:%M")) #initial time for series
+keep2=((as.numeric(TIMESTAMP)-as.numeric(origin2) > 0) & (as.numeric(TIMESTAMP)-as.numeric(endtime2) < 0)
+)
+dates=df_PT[keep2,1]
+d = ggplot(df_PT[keep2,], aes(x=dates,y=convertToSE(df_PT[keep2,PT_id[i]],0.01,1.5)))+
+  geom_rect(mapping=aes(xmin=event_start[15],xmax=event_end[15],ymin=60,ymax=100),linetype="blank",alpha=0.01)+
+  geom_rect(mapping=aes(xmin=event_start[16],xmax=event_end[16],ymin=60,ymax=100),linetype="blank",alpha=0.01)+
+  geom_line(aes(x=dates,y=convertToSE(df_PT[keep2,PT_id[i]],0.01,1.53)*100,group=t[1],colour=t[1]),linetype=11,size=1.75)+
+  geom_line(aes(x=dates,y=convertToSE(df_PT[keep2,PT_id[i+1]],0.01,1.53)*100,group=t[2],colour=t[2]),linetype=11,size=1.75)+
+  #geom_line(aes(x=dates,y=convertToSE(df_PT[keep2,PT_id[i+2]],0.03,1.46)*100,group=t[3],colour=t[3]))+
+  #geom_line(aes(x=dates,y=convertToSE(df_PT[keep2,PT_id[i+3]],0.03,1.46)*100,group=t[4],colour=t[4]))+
+  labs(x="Time",y="% Saturation")+
+  scale_y_continuous(limits = c(60,100))+
+  scale_x_datetime(breaks = "1 week",minor_breaks="1 day", labels=date_format("%m/%d/%Y"))+
+  scale_colour_discrete(name="Depth")+
+  theme_classic()+
+  theme(text = element_text(size=72),panel.grid.major=element_line(size=.5, color = "dark grey"),panel.grid.minor=element_line(size=.2, color = "light grey"))
+print(d)
 
 integrateHeadTime = function(x,dt) {
   l=length(x)
