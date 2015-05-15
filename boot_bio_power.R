@@ -1,6 +1,7 @@
 #bootstrap linear model power test
 foo = read.csv("S:\\Andrew\\CampbellAlfalfa\\310315_plant-counts.csv")
 foo$bio=foo$bio*2
+foo=data.frame(foo)
 library(boot)
 library(pwr)
 rsq <- function(dep, ind, blk, ninds, data, indices) {
@@ -22,3 +23,12 @@ boot.ci(results, type="bca")
 min(results$t)
 max(results$t)
 sum(results$t>=0.9)/sum(results$t>-1)
+
+library(nlme)
+bio=foo$bio
+treat=foo$treat
+water=foo$water
+timer=foo$day
+block=foo$block
+m1=lme(bio~water*day,foo,~1|block)
+m3=lme(bio ~ water*day, foo, ~ 1|subplot/plot)

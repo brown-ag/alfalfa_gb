@@ -1,16 +1,6 @@
 #hydrus-1d multiparameter optimization script
 #MODELID = 5
-library(plot3d)
-errz=c()
-for(i in 1:36) {
-  node=readNodeFile(i)
-  fit=readFitIn(i)
-  errz=c(errz,sqrt(mean((node[,2]-fit[,2])^2)))
-}
-err=matrix(errz,nrow=6,ncol=36)
-contour(err[,1:6])
-
-
+library(plot3D)
 readNodeFile <- function(id) {
   fn="OBS_NODE.out"
   fl="Node"
@@ -44,3 +34,42 @@ readH1DFile <- function(id,fname,strFlag,cols,start) {
   close(con)
   return(buf[start:length(buf[,3]),3:cols])
 }
+
+getFitPoints <- function(x,fit,int=15) {
+  x=array(x)
+  mmin=0
+  mmax=0
+  buf=c()
+  for(i in 1:length(fit)) {
+    mmax=int*i
+    interval=(x[((x<=mmax) + (x>mmin))-1])
+    buf=c(buf,rep(i,length(interval)))
+    mmin=mmax
+  }
+  return(buf)
+}
+errz=c()
+map_fname=".\\MAP.MAP"
+map=read.csv(map_fname)
+fit=readFitIn(1)
+node=readNodeFile(1)
+fp=array(getFitPoints(node[,1],fit[,1]))
+for(i in 1:121) {
+  node=readNodeFile(i)
+  fp=array(getFitPoints(node[,1],fit[,1]))
+  noder=aggregate(array(node[1:length(fp),2])~fp,FUN=mean)
+  errz=c(errz,sum((noder-fit[,2])^2))
+}
+
+sseer <- function(i,fitp) {
+  node=readNodeFile(i)
+  noder=aggregate(array(node[1:length(fitp),2])~fitp,FUN=mean)
+  errz=c(errz,sum((noder-fitp[,2])^2))
+}
+node=readNodeFile(1)
+fp=array(getFitPoints(node[,1],fit[,1]))
+noder=aggregate(array(node[1:length(fp),2])~fp,FUN=mean)
+errz=c(errz,sum((noder-fit[,2])^2))
+map=na.omit(map)
+err=cbind(map[,8],map[,11],errz)
+scatter2D(z=err[,3],y=err[,2],x=err[,1])

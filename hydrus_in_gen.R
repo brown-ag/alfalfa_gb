@@ -1,21 +1,54 @@
 #hydrus-1d input generator
 selector_fname=".\\Templates\\SELECTOR_TEMPLATE.IN"
 fit_fname=".\\Templates\\FIT_TEMPLATE.IN"
+map_fname=".\\MAP.MAP"
 selector_template=readChar(selector_fname,file.info(selector_fname)$size)
 fit_template=readChar(fit_fname,file.info(fit_fname)$size)
+params=t(c("MODELID", "THETAR","THETAS","ALPHA1","ALPHA2","N1","N2","KSAT","L","W2"))
+mat_selector=matrix(params)
+
+#Simulation directory path
+simpath="Simulations"
 
 #Define the range of parameters to use for inital guesses.
 #Setting min and max equal holds that parameter constant
-disc=5 #'disc' defines the discretization within the specified min and maximum
+disc=10 #'disc' defines the discretization within the specified min and maximum
 range_thetar=c(0.0727,0.0727)#c(0,0.2)
-range_thetas=c(0.4471,0.4471)#c(0.3,0.5)
-range_alpha1=c(0.0124,0.0124)#c(0,0.1)
-range_alpha2=c(0.01,0.1)
-range_n1=c(1.47,1.47)#c(1,4)
-range_n2=c(1.5,1.5)#c(1,4)
-range_ksat=c(0.5,2)#c(0.01, 1)
+range_thetas=c(0.45,0.45)#c(0.3,0.5)
+range_alpha1=c(0.01,0.01)#c(0,0.1)
+range_alpha2=c(0.03,0.03)
+range_n1=c(1.5,1.5)#c(1,4)
+range_n2=c(1.1,3)#c(1,4)
+range_ksat=c(0.14,0.14)#c(0.01, 1)
 range_l=c(0.5,0.5)#c(0,1)
-range_w2=c(0,1)
+range_w2=c(0.1,0.9)
+
+makeSelectorFit <- function(n,id,a,b,c,d,e,f,g,h,i) {
+  buffer=selector_template
+  buffer2=fit_template
+  
+  values=c(id,a,b,c,d,e,f,g,h,i)
+  for(p in 1:length(params)) {
+    buffer=gsub(paste("%",params[p],"%",sep=""),values[p],buffer)
+    buffer2=gsub(paste("%",params[p],"%",sep=""),values[p],buffer2)
+  }
+  writeChar(buffer,paste(".\\Simulations\\",n,"\\SELECTOR.IN",sep=""))
+  writeChar(buffer2,paste(".\\Simulations\\",n,"\\FIT.IN",sep=""))
+}
+
+makeBatch <- function(last_index) {
+  buffer="@echo off\n"
+  for(kk in 1:(last_index-1)) {
+    #buffer=paste(buffer,"cp ","S:\\Andrew\\Code\\alfalfa_gb_git\\Simulations\\PROFILE.DAT ", kk, "\n", sep="")
+    #buffer=paste(buffer,"cp ","S:\\Andrew\\Code\\alfalfa_gb_git\\Simulations\\HYDRUS1D.DAT ", kk, "\n", sep="")
+    #buffer=paste(buffer,"cp ","S:\\Andrew\\Code\\alfalfa_gb_git\\Simulations\\ATMOSPH.IN ", kk, "\n", sep="")
+    buffer=paste(buffer,"cp ","PROFILE.DAT ", kk, "\n", sep="")
+    buffer=paste(buffer,"cp ","HYDRUS1D.DAT ", kk, "\n", sep="")
+    buffer=paste(buffer,"cp ","ATMOSPH.IN ", kk, "\n", sep="")
+    buffer=paste(buffer,"\"C:\\hydrus1d\\H1D_calc.exe\" S:\\Andrew\\Code\\alfalfa_gb_git\\Simulations\\",kk,"\n", sep="")  
+  }
+  write(buffer,".\\Simulations\\sim.bat")
+}
 
 d_thetar=seq(range_thetar[1], range_thetar[2], (range_thetar[2]-range_thetar[1])/disc)
 d_thetas=seq(range_thetas[1], range_thetas[2], (range_thetas[2]-range_thetas[1])/disc)
@@ -51,27 +84,5 @@ for(a in d_thetar) {
   }
 }
 makeBatch(n)
-
-makeSelectorFit <- function(n,id,a,b,c,d,e,f,g,h,i) {
-  buffer=selector_template
-  buffer2=fit_template
-  params=c("MODELID", "THETAR","THETAS","ALPHA1","ALPHA2","N1","N2","KSAT","L","W2")
-  values=c(id,a,b,c,d,e,f,g,h,i)
-  for(p in 1:length(params)) {
-    buffer=gsub(paste("%",params[p],"%",sep=""),values[p],buffer)
-    buffer2=gsub(paste("%",params[p],"%",sep=""),values[p],buffer2)
-  }
-  writeChar(buffer,paste(".\\Simulations\\",n,"\\SELECTOR.IN",sep=""))
-  writeChar(buffer2,paste(".\\Simulations\\",n,"\\FIT.IN",sep=""))
-}
-
-makeBatch <- function(last_index) {
-  buffer="@echo off\n"
-  for(kk in 1:(last_index-1)) {
-    buffer=paste(buffer,"cp PROFILE.DAT ", kk, "\n", sep="")
-    buffer=paste(buffer,"cp HYDRUS1D.DAT ", kk, "\n", sep="")
-    buffer=paste(buffer,"cp ATMOSPH.IN ", kk, "\n", sep="")
-    buffer=paste(buffer,"\"C:\\hydrus1d\\H1D_calc.exe\" S:\\Andrew\\Code\\alfalfa_gb_git\\Simulations\\",kk,"\n", sep="")  
-  }
-  write(buffer,".\\Simulations\\sim.bat")
-}
+write.csv(map,map_fname)
+shell('S:\\Andrew\\Code\\alfalfa_Gb_git\\Simulations\\sim.bat')
