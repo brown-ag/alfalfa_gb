@@ -1,5 +1,5 @@
 
-equire(ggplot2)
+require(ggplot2)
 require(reshape)
 library(scales)
 library(data.table)
@@ -111,6 +111,8 @@ SATp=df_PT[2:20]
 convertToSE=function(x,alpha,n) {
   return((1+(alpha*x)^n)^(-(1-(1/n))))
 }
+
+
 
 
 radian_time=((TIMESTAMPn/1440)%%1)*2*pi

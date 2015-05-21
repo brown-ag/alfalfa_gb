@@ -4,7 +4,7 @@ library(plot3D)
 readNodeFile <- function(id) {
   fn="OBS_NODE.out"
   fl="Node"
-  return(readH1DFile(id,fn,fl,9,4))
+  return(readH1DFile(id,fn,fl,6,4))
 }
 
 readFitIn <- function(id) {
@@ -20,6 +20,7 @@ readH1DFile <- function(id,fname,strFlag,cols,start) {
   buf=matrix(ncol=cols)
   flag=FALSE
   while (length(li <- readLines(con, n=1,warn=FALSE))>0) {
+   #print(length(li))
    if(flag) {
      baz=gsub("\\s+",",",li,perl=TRUE)
      qux=as.numeric(unlist(strsplit(baz[2:length(baz)],split=",")))
@@ -32,7 +33,8 @@ readH1DFile <- function(id,fname,strFlag,cols,start) {
    }
   }
   close(con)
-  return(buf[start:length(buf[,3]),3:cols])
+  #print(buf)
+  return(buf[start:length(buf[,1]),3:(cols)])
 }
 
 getFitPoints <- function(x,fit,int=15) {
@@ -49,16 +51,24 @@ getFitPoints <- function(x,fit,int=15) {
   return(buf)
 }
 errz=c()
+dimension=11
+map_axes=c(9,11)
 map_fname=".\\MAP.MAP"
 map=read.csv(map_fname)
+names(map)=c("id1","id2",params[2:length(params)])
 fit=readFitIn(1)
 node=readNodeFile(1)
 fp=array(getFitPoints(node[,1],fit[,1]))
-for(i in 1:121) {
+plot(fit[,2],type="l")
+est=matrix(nrow=187,ncol=(dimension^2))
+for(i in 1:(dimension^2)) {
   node=readNodeFile(i)
   fp=array(getFitPoints(node[,1],fit[,1]))
   noder=aggregate(array(node[1:length(fp),2])~fp,FUN=mean)
-  errz=c(errz,sum((noder-fit[,2])^2))
+  #print(max(node[,1]))
+  est[,i]=noder[,2]
+  #lines(noder[,2],col=i)
+  errz=c(errz,sum((noder[,2]-fit[,2])^2))
 }
 
 sseer <- function(i,fitp) {
@@ -71,5 +81,66 @@ fp=array(getFitPoints(node[,1],fit[,1]))
 noder=aggregate(array(node[1:length(fp),2])~fp,FUN=mean)
 errz=c(errz,sum((noder-fit[,2])^2))
 map=na.omit(map)
-err=cbind(map[,8],map[,11],errz)
-scatter2D(z=err[,3],y=err[,2],x=err[,1])
+err=cbind(map[,map_axes],errz[1:(dimension^2)+1])
+xx=unique(err[,1])#err[order(err[,3])[1:11],1]
+yy=unique(err[,2])#erer[order(err[,1])[1:11],2]
+#kk=unique(err[,3])#err[order(err[which(map[,10]==0.5),2])[1:11],3]
+zz=matrix(err[,3],ncol=dimension)
+df=matrix(xx,yy,zz)
+df=df[df[,3]<10000000,]
+#image2D(colvar=kk,y=yy,x=xx,z=zz)
+#persp3D(x=yy,y=-xx,z=matrix(err[,3],dimension),colvar=matrix(err[,4],dimension),nlevels=1000)
+
+contour3D(x=1:dimenson,,y=1:dimension,z=0,colvar=err[which(map[,11]==0.5),4],nlevels=100)
+
+plot3d(x=err[,1],y=err[,2],z=err[,3])
+dis=dist(err[,1:4],method="euclidean")
+tree=hclust(dis,method="ward")
+clust=as.factor((cutree(tree,k=3)-2) %% 3 + 1)
+plot(tree)
+rect.hclust(tree,k=3,border="red")
+
+library(soma)
+
+err1=(t(aggregate(err[,3],by=list(err[,1]),FUN=matrix)))[2:(dimension+1),]
+err2=(t(aggregate(err[,3],by=list(err[,2]),FUN=matrix)))[2:(dimension+1),]
+matplot(err1,x=yy,type="l",xlab="Ksat",ylab="Objective",lty=floor(100*xx),col=floor(100*xx))
+legend(x="topleft", as.character(xx),ncol=7,lty=floor(100*xx),col=floor(100*xx),cex=0.9)
+matplot(err2,x=xx,type="l",xlab="w",ylab="Objective",lty=floor(100*yy),col=floor(100*yy))
+legend(x="topleft", as.character(yy),ncol=7,lty=floor(100*yy),col=floor(100*yy),cex=0.9)
+plot
+
+flah=which(((mins<0) +(mins>-40))==2)
+flah2=cbind(map[flah,c(9,11)],errz[flah])
+which(errz==flah2[which(flah2[,3]==min(flah2[,3])),][,3])
+gee=order(errz)[1:10]
+plot(fit[,2],ylim=c(-250,0))
+for(g in gee){
+  lines(est[,g])
+}
+bmap=cbind(map[gee,],errz[gee])
+cor(bmap[,9],bmap[,11])
+contour(y=yy,x=xx,z=zz/mean(zz),nlevels=10000)
+maa=matrix(xx,yy,zz/mean(zz))
+library(misc3d)
+library(plot3D)
+library(rgl)
+contour3d(x=xx,y=yy)
+persp3d(xx,yy,z=zz-(mean(zz))/mean(zz))
+
+library(raster)
+err[121,3]=NA
+ras=raster(nrows=11,ncols=11,vals=log10(err[,3]),xmn=min(err[,1]),xmx=max(err[,1]),ymn=min(err[,2]),ymx=max(err[,2]))
+filledContour(ras)
+f <- function(X) min(X, na.rm=TRUE)
+localmin <- focal(ras,fun=f,pad=TRUE,padValue=NA,w=matrix(1,121,121))
+ras2=ras==localmin
+minXY=xyFromCell(ras2,Which(ras2==1,cells=TRUE))
+minx=matrix(minXY)
+filledContour(ras,col=terrain.colors(log10(err[,3])*5))
+filledContour(ras,col=terrain.colors(log10(err[,3])*5),plot.axes={axis(1);axis(2);points(minx[1,1],minx[3,1]);points(minx[2,1],minx[4,1                                                                                                                     ])})
+contour(ras,col=terrain.colors(log10(err[,3])*5),nlevels=100,xlab=names(map[,map_axes])[1],ylab=names(map[,map_axes])[2])
+points(minXY,pch=3,col=1)
+
+plot(map[,9],map[,11])
+> points(bmap[,9],bmap[,11],pch="*",col="blue")
