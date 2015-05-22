@@ -22,18 +22,18 @@ range_thetas=c(0.44,0.44)#c(0.3,0.5)
 range_alpha1=c(0.01,0.01)#c(0,0.1)
 range_alpha2=c(0.026,0.026)
 range_n1=c(1.5,1.5)#c(1,4)
-range_n2=c(3,3)#c(1,4)
-range_ksat=c(0.6,0.8)#c(0.01, 1)
+range_n2=c(1.5,3.5)#c(1,4)
+range_ksat=c(0.02,0.02)#c(0.01, 1)
 range_l=c(0.5,0.5)#c(0,1)
-range_w2=c(0.60,0.70)
+range_w2=c(0.01,1)
 range_pulse=c(16,16)
 
-makeSelectorFit <- function(n,id,a,b,c,d,e,f,g,h,i,j) {
+makeSelectorFit <- function(n,id,pval,bval) {
   buffer=selector_template
   buffer2=fit_template
   buffer3=atmo_template
-  values=c(id,a,b,c,d,e,f,g,h,i)
-  avalues=c(j)
+  values=c(id,pval)
+  avalues=c(bval)
   for(p in 1:length(params)) {
     buffer=gsub(paste("%",params[p],"%",sep=""),values[p],buffer)
     buffer2=gsub(paste("%",params[p],"%",sep=""),values[p],buffer2)
@@ -57,45 +57,31 @@ makeBatch <- function(last_index) {
   write(buffer,".\\Simulations\\sim.bat")
 }
 
-d_thetar=seq(range_thetar[1], range_thetar[2], (range_thetar[2]-range_thetar[1])/disc)
-d_thetas=seq(range_thetas[1], range_thetas[2], (range_thetas[2]-range_thetas[1])/disc)
-d_alpha1=seq(range_alpha1[1], range_alpha1[2], (range_alpha1[2]-range_alpha1[1])/disc)
-d_alpha2=seq(range_alpha2[1], range_alpha2[2], (range_alpha2[2]-range_alpha2[1])/disc)
-d_n1=seq(range_n1[1], range_n1[2], (range_n1[2]-range_n1[1])/disc)
-d_n2=seq(range_n2[1], range_n2[2], (range_n2[2]-range_n2[1])/disc)
-d_ksat=seq(range_ksat[1], range_ksat[2], (range_ksat[2]-range_ksat[1])/disc)
-d_l=seq(range_l[1], range_l[2], (range_l[2]-range_l[1])/disc)
-d_w2=seq(range_w2[1], range_w2[2], (range_w2[2]-range_w2[1])/disc)
-d_pulse=seq(range_pulse[1], range_pulse[2], (range_pulse[2]-range_pulse[1])/disc)
-map=matrix(ncol=11)
-n=1
-for(a in d_thetar) {
-  for(b in d_thetas) {
-    for(c in d_alpha1) {
-      for(d in d_alpha2) {
-        for(e in d_n1) {
-          for(f in d_n2) {
-            for(g in d_ksat) {
-              for(h in d_l) {
-                for(i in d_w2) {
-                  for(j in d_pulse) {
-                    dd=paste(".\\Simulations\\",n,sep="")
-                    if(!dir.exists(dd)) {
-                     dir.create(dd)
-                    }
-                    makeSelectorFit(n,5,a,b,c,d,e,f,g,h,i,j)
-                    map=rbind(map,c(n,a,b,c,d,e,f,g,h,i,j))
-                    n=n+1
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+getSeq <- function(range, disc){
+  return(seq(range[1],range[2],(range[2]-range[1])/disc))
 }
-makeBatch(n)
+
+d_thetar=getSeq(range_thetar,disc)
+d_thetas=getSeq(range_thetas,disc)
+d_alpha1=getSeq(range_alpha1,disc)
+d_alpha2=getSeq(range_alpha2,disc)
+d_n1=getSeq(range_n1,disc)
+d_n2=getSeq(range_n2,disc)
+d_ksat=getSeq(range_ksat,disc)
+d_l=getSeq(range_l,disc)
+d_w2=getSeq(range_w2,disc)
+d_pulse=getSeq(range_pulse,disc)
+map=matrix(ncol=11)
+
+gridd=expand.grid(d_thetar,d_thetas,d_alpha1,d_alpha2,d_n1,d_n2,d_ksat,d_l,d_w2,d_pulse)
+for(i in 1:length(gridd[,1])) {
+  dd=paste(".\\Simulations\\",i,sep="")
+  if(!dir.exists(dd)) {
+    dir.create(dd)
+  }
+  makeSelectorFit(i,5,gridd[i,1:9],gridd[,10])
+  map=rbind(map,c(i,gridd[i,1:9],gridd[,10]))
+}
+makeBatch(i)
 write.csv(map,map_fname)
 shell('S:\\Andrew\\Code\\alfalfa_Gb_git\\Simulations\\sim.bat')

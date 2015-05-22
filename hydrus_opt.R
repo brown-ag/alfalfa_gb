@@ -4,7 +4,8 @@ library(plot3D)
 readNodeFile <- function(id) {
   fn="OBS_NODE.out"
   fl="Node"
-  return(readH1DFile(id,fn,fl,6,4))
+  sk=12
+  return(readH1DFile(id,fn,fl,12,sk,4))
 }
 
 readFitIn <- function(id) {
@@ -12,29 +13,35 @@ readFitIn <- function(id) {
   fl="FOS"
   return(readH1DFile(id,fn,fl,7,2))
 }
-
+fee=""
 #H1D FILE reader
-readH1DFile <- function(id,fname,strFlag,cols,start) {
+readH1DFile <- function(id,fname,strFlag,cols,skip,start) {
   obs_node_fname=paste("S:\\Andrew\\Code\\alfalfa_gb_git\\Simulations\\",id,"\\",fname,sep="")
   con=file(obs_node_fname, open="r")
-  buf=matrix(ncol=cols)
   flag=FALSE
-  while (length(li <- readLines(con, n=1,warn=FALSE))>0) {
-   #print(length(li))
-   if(flag) {
-     baz=gsub("\\s+",",",li,perl=TRUE)
-     qux=as.numeric(unlist(strsplit(baz[2:length(baz)],split=",")))
-     #print(length(qux))
-     if(length(qux)==cols)
-       buf=rbind(buf,qux)
-   }
-   if(grepl(strFlag,li,fixed=TRUE)) {
-     flag=TRUE
-   }
-  }
+#  while (length(li <- readLines(con, n=1,warn=FALSE))>0) {
+#    baz=paste(baz,"\n",li,sep="")
+#  }
+  iyx=scan(con,what=list(a="1.234",b="1.234",c="1.234",d="1.234"),skip=skip,fill=TRUE)
   close(con)
-  #print(buf)
-  return(buf[start:length(buf[,1]),3:(cols)])
+  #for(li in baz) {
+  # if(flag) {
+  #   baz=gsub("\\s+",",",li,perl=TRUE)
+  #   qux=as.numeric(unlist(strsplit(baz[2:length(baz)],split=",")))
+  #   if(length(qux)==cols) {
+  #     buf=rbind(buf,qux)
+  #   }
+  # }
+  # if(grepl(strFlag,li,fixed=TRUE)) {
+  #   flag=TRUE
+  # }
+  #}
+  #baz=gsub("\\s+",",",iyx,perl=TRUE)
+  #qux=as.numeric(unlist(strsplit(baz[1:length(baz)-1],split=",")))
+  mat=matrix(unlist(l),ncol=4)[1:(length(mat[,1])-1),]
+  class(mat)="numeric"
+  return(mat)
+  #return(buf[start:length(buf[,1]),3:(cols)])
 }
 
 getFitPoints <- function(x,fit,int=15) {
@@ -52,7 +59,7 @@ getFitPoints <- function(x,fit,int=15) {
 }
 errz=c()
 dimension=11
-map_axes=c(9,11)
+map_axes=c(10,11)
 map_fname=".\\MAP.MAP"
 map=read.csv(map_fname)
 names(map)=c("id1","id2",params[2:length(params)])
@@ -81,17 +88,10 @@ fp=array(getFitPoints(node[,1],fit[,1]))
 noder=aggregate(array(node[1:length(fp),2])~fp,FUN=mean)
 errz=c(errz,sum((noder-fit[,2])^2))
 map=na.omit(map)
-err=cbind(map[,map_axes],errz[1:(dimension^2)+1])
+err=cbind(map[,map_axes],errz[2:((dimension^2)+1)])
 xx=unique(err[,1])#err[order(err[,3])[1:11],1]
 yy=unique(err[,2])#erer[order(err[,1])[1:11],2]
-#kk=unique(err[,3])#err[order(err[which(map[,10]==0.5),2])[1:11],3]
 zz=matrix(err[,3],ncol=dimension)
-df=matrix(xx,yy,zz)
-df=df[df[,3]<10000000,]
-#image2D(colvar=kk,y=yy,x=xx,z=zz)
-#persp3D(x=yy,y=-xx,z=matrix(err[,3],dimension),colvar=matrix(err[,4],dimension),nlevels=1000)
-
-contour3D(x=1:dimenson,,y=1:dimension,z=0,colvar=err[which(map[,11]==0.5),4],nlevels=100)
 
 plot3d(x=err[,1],y=err[,2],z=err[,3])
 dis=dist(err[,1:4],method="euclidean")
@@ -101,7 +101,7 @@ plot(tree)
 rect.hclust(tree,k=3,border="red")
 
 library(soma)
-
+par(mfrow=c(1,1))
 err1=(t(aggregate(err[,3],by=list(err[,1]),FUN=matrix)))[2:(dimension+1),]
 err2=(t(aggregate(err[,3],by=list(err[,2]),FUN=matrix)))[2:(dimension+1),]
 matplot(err1,x=yy,type="l",xlab="Ksat",ylab="Objective",lty=floor(100*xx),col=floor(100*xx))
@@ -125,11 +125,11 @@ maa=matrix(xx,yy,zz/mean(zz))
 library(misc3d)
 library(plot3D)
 library(rgl)
+
 contour3d(x=xx,y=yy)
 persp3d(xx,yy,z=zz-(mean(zz))/mean(zz))
 
 library(raster)
-err[121,3]=NA
 ras=raster(nrows=11,ncols=11,vals=log10(err[,3]),xmn=min(err[,1]),xmx=max(err[,1]),ymn=min(err[,2]),ymx=max(err[,2]))
 filledContour(ras)
 f <- function(X) min(X, na.rm=TRUE)
@@ -142,5 +142,5 @@ filledContour(ras,col=terrain.colors(log10(err[,3])*5),plot.axes={axis(1);axis(2
 contour(ras,col=terrain.colors(log10(err[,3])*5),nlevels=100,xlab=names(map[,map_axes])[1],ylab=names(map[,map_axes])[2])
 points(minXY,pch=3,col=1)
 
-plot(map[,9],map[,11])
-> points(bmap[,9],bmap[,11],pch="*",col="blue")
+plot(map[,10],map[,11])
+points(bmap[,10],bmap[,11],pch="*",col="blue")
