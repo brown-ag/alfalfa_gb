@@ -26,6 +26,7 @@ abline(batfit)
 TIMESTAMP = as.POSIXct(strptime(foo[,1],"%m/%d/%Y %H:%M"))
 event_start = as.POSIXct(strptime(events[,4],"%m/%d/%Y %H:%M"))
 event_end = as.POSIXct(strptime(events[,5],"%m/%d/%Y %H:%M"))
+time_test=ts(TIMESTAMP,frequency=length(TIMESTAMP))
 origin=as.POSIXct(strptime(origin_time,"%m/%d/%Y %H:%M")) #initial time for series
 tindex=seq(1,length(TIMESTAMP))*15
 hour=as.numeric(substr(TIMESTAMP,12,13))#
@@ -39,8 +40,8 @@ day=data.frame(dindex,rad_time)
 head(data[day[,1]==4,])
 TIMESTAMPa=TIMESTAMP[keep]
 TIMESTAMPn=seq(0,length(TIMESTAMPa))*15
-
-
+TIMESERIES=ts(TIMESTAMPa,frequency=(length(TIMESTAMPa)*15/(24*60)))
+dtest=aggregate(data[,3],list(sixhr=cycle(TIMESERIES)),mean)
 
 #Remove convert to mBar, remove NaN values and values prior to specified origin
 foo2=foo
@@ -111,9 +112,18 @@ SATp=df_PT[2:20]
 convertToSE=function(x,alpha,n) {
   return((1+(alpha*x)^n)^(-(1-(1/n))))
 }
-
-
-
+mo <- as.numeric(strftime(TIMESTAMP, "%m"))
+dy <- as.numeric(strftime(TIMESTAMP, "%d"))
+hr <- as.numeric(strftime(TIMESTAMP, "%H"))
+which((hr %% 2) == 0)
+d3=aggregate(data[,3]~mo+dy+hr,FUN=mean)
+s3=aggregate(data[,3]~mo+dy+hr,FUN=sd)
+t3=aggregate(TIMESTAMP~mo+dy+hr,FUN=median)
+#d3=cbind(sort(t3[,4]),d3[,4])
+d3=cbind(d3,s3)
+d4=d3[order(d3[,1],d3[,2],d3[,3]),]
+cis4=cbind(d4[,4]+wid,d4[,4]-wid)
+plot(ma(1:length(d4[,4]),n=6),ma(d4[,4],n=24))
 
 radian_time=((TIMESTAMPn/1440)%%1)*2*pi
 

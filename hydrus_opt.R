@@ -4,25 +4,23 @@ library(plot3D)
 readNodeFile <- function(id) {
   fn="OBS_NODE.out"
   fl="Node"
-  sk=12
-  return(readH1DFile(id,fn,fl,12,sk,4))
+  return(readH1DFile(id,fn,4,list(a="1.234",b="1.234",c="1.234",d="1.234"),12,1))
 }
 
 readFitIn <- function(id) {
   fn="FIT.IN"
-  fl="FOS"
-  return(readH1DFile(id,fn,fl,7,2))
+  return(readH1DFile(id,fn,5,list(a="1.234",b="1.234",c="1.234",d="1.234",e="1.234"),16,3))
 }
 fee=""
 #H1D FILE reader
-readH1DFile <- function(id,fname,strFlag,cols,skip,start) {
+readH1DFile <- function(id,fname,cols,whatt,skipp,trimm) {
   obs_node_fname=paste("S:\\Andrew\\Code\\alfalfa_gb_git\\Simulations\\",id,"\\",fname,sep="")
   con=file(obs_node_fname, open="r")
   flag=FALSE
 #  while (length(li <- readLines(con, n=1,warn=FALSE))>0) {
 #    baz=paste(baz,"\n",li,sep="")
 #  }
-  iyx=scan(con,what=list(a="1.234",b="1.234",c="1.234",d="1.234"),skip=skip,fill=TRUE)
+  iyx=suppressWarnings(scan(con,what=whatt,skip=skipp,fill=TRUE))
   close(con)
   #for(li in baz) {
   # if(flag) {
@@ -38,7 +36,8 @@ readH1DFile <- function(id,fname,strFlag,cols,skip,start) {
   #}
   #baz=gsub("\\s+",",",iyx,perl=TRUE)
   #qux=as.numeric(unlist(strsplit(baz[1:length(baz)-1],split=",")))
-  mat=matrix(unlist(l),ncol=4)[1:(length(mat[,1])-1),]
+  mat=matrix(unlist(iyx),ncol=cols)
+  mat=mat[1:(length(mat[,1])-trimm),]
   class(mat)="numeric"
   return(mat)
   #return(buf[start:length(buf[,1]),3:(cols)])
@@ -59,14 +58,14 @@ getFitPoints <- function(x,fit,int=15) {
 }
 errz=c()
 dimension=11
-map_axes=c(10,11)
+map_axes=c(7,10)
 map_fname=".\\MAP.MAP"
 map=read.csv(map_fname)
 names(map)=c("id1","id2",params[2:length(params)])
 fit=readFitIn(1)
 node=readNodeFile(1)
 fp=array(getFitPoints(node[,1],fit[,1]))
-plot(fit[,2],type="l")
+plot(fit[,2])
 est=matrix(nrow=187,ncol=(dimension^2))
 for(i in 1:(dimension^2)) {
   node=readNodeFile(i)
@@ -78,14 +77,6 @@ for(i in 1:(dimension^2)) {
   errz=c(errz,sum((noder[,2]-fit[,2])^2))
 }
 
-sseer <- function(i,fitp) {
-  node=readNodeFile(i)
-  noder=aggregate(array(node[1:length(fitp),2])~fitp,FUN=mean)
-  errz=c(errz,sum((noder-fitp[,2])^2))
-}
-node=readNodeFile(1)
-fp=array(getFitPoints(node[,1],fit[,1]))
-noder=aggregate(array(node[1:length(fp),2])~fp,FUN=mean)
 errz=c(errz,sum((noder-fit[,2])^2))
 map=na.omit(map)
 err=cbind(map[,map_axes],errz[2:((dimension^2)+1)])
