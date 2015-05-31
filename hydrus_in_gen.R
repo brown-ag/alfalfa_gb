@@ -1,87 +1,142 @@
 #hydrus-1d input generator
+
 selector_fname=".\\Templates\\SELECTOR_TEMPLATE.IN"
 fit_fname=".\\Templates\\FIT_TEMPLATE.IN"
 atmo_fname=".\\Templates\\ATMOSPH_TEMPLATE.IN"
-map_fname=".\\MAP.MAP"
+prof_fname=".\\Templates\\PROFILE_TEMPLATE.DAT"
+H1D_fname=".\\Templates\\HYDRUS1D_TEMPLATE.DAT"
 selector_template=readChar(selector_fname,file.info(selector_fname)$size)
 fit_template=readChar(fit_fname,file.info(fit_fname)$size)
 atmo_template=readChar(atmo_fname,file.info(atmo_fname)$size)
-params=t(c("MODELID", "THETAR","THETAS","ALPHA1","ALPHA2","N1","N2","KSAT","L","W2"))
-bcs=t(c("PULSE"))
-mat_selector=matrix(params)
-mat_atmo=matrix(bcs)
+prof_template=readChar(prof_fname,file.info(prof_fname)$size)
+h1d_template=readChar(H1D_fname,file.info(H1D_fname)$size)
 
-#Simulation directory path
-simpath="Simulations"
-
-#Define the range of parameters to use for inital guesses.
-#Setting min and max equal holds that parameter constant
 disc=10 #'disc' defines the discretization within the specified min and maximum
-range_thetar=c(0,0)#c(0,0.2)
-range_thetas=c(0.44,0.44)#c(0.3,0.5)
-range_alpha1=c(0.01,0.01)#c(0,0.1)
-range_alpha2=c(0.026,0.026)
-range_n1=c(4,6)#c(1,4)
-range_n2=c(3,3)#c(1,4)
-range_ksat=c(0.02,0.02)#c(0.01, 1)
-range_l=c(0.01,2)#c(0,1)
-range_w2=c(0,0)
-range_pulse=c(16,16)
 
-makeSelectorFit <- function(n,id,pval,bval) {
-  buffer=selector_template
-  buffer2=fit_template
-  buffer3=atmo_template
-  values=c(id,pval)
-  avalues=c(bval)
+makeSelectorFit <- function(n,pval,params,outpath) {
+  buffer=c(selector_template,fit_template,atmo_template,prof_template,h1d_template)
+  fnames=c("SELECTOR.IN","FIT.IN","ATMOSPH.IN","PROFILE.DAT","HYDRUS1D.DAT")
+  values=c(pval)
   for(p in 1:length(params)) {
-    buffer=gsub(paste("%",params[p],"%",sep=""),values[p],buffer)
-    buffer2=gsub(paste("%",params[p],"%",sep=""),values[p],buffer2)
+    for(qq in 1:length(buffer))
+      buffer[qq]=gsub(paste("%",toupper(params[p]),"%",sep=""),values[p],buffer[qq])
   }
-  for(av in 1:length(bcs)) {
-    buffer3=gsub(paste("%",bcs[av],"%",sep=""),avalues[av],buffer3)
+  for(qq in 1:length(buffer)) {
+    writeChar(buffer[qq],paste(outpath,"\\",n,"\\",fnames[qq],sep=""))
   }
-  writeChar(buffer,paste(".\\Simulations\\",n,"\\SELECTOR.IN",sep=""))
-  writeChar(buffer2,paste(".\\Simulations\\",n,"\\FIT.IN",sep=""))
-  writeChar(buffer3,paste(".\\Simulations\\",n,"\\ATMOSPH.IN",sep=""))
 }
 
-makeBatch <- function(last_index) {
+makeMasterBatch <- function(nsim) {
   buffer="@echo off\n"
-  for(kk in 1:(last_index-1)) {
-    buffer=paste(buffer,"cp ","PROFILE.DAT ", kk, "\n", sep="")
-    buffer=paste(buffer,"cp ","HYDRUS1D.DAT ", kk, "\n", sep="")
-    #buffer=paste(buffer,"cp ","ATMOSPH.IN Simulations\\", kk, "\n", sep="")
-    buffer=paste(buffer,"\"C:\\hydrus1d\\H1D_calc.exe\" S:\\Andrew\\Code\\alfalfa_gb_git\\Simulations\\",kk,"\n", sep="")  
+  for(kk in 1:(nsim)) {
+    buffer=paste(buffer,"cd .\\",kk,"\n",sep="")  
+    buffer=paste(buffer,"call sim.bat\n", sep="")  
+    #buffer=paste(buffer,"cd ..\n", sep="")  
   }
-  write(buffer,".\\Simulations\\sim.bat")
+  write(buffer,paste("S:\\Andrew\\Code\\alfalfa_gb_git\\Simulations\\master.bat",sep=""))
+}
+
+makeBatch <- function(last_index,n,outpath) {
+  buffer="@echo off\n" 
+  wd=gsub("/","\\",getwd(),fixed=TRUE)
+  for(kk in 1:(last_index)) {
+    buffer=paste(buffer,"@echo ", wd,"\\Simulations\\",n,"\\",kk," > C:\\hydrus1d\\Level_01.dir\nC:\ncd C:\\hydrus1d\\\nH1D_clci<return.txt\nS:\ncd ",wd,"\\Simulations\n", sep="") 
+    #@echo S:\Andrew\Code\alfalfa_gb_git\Simulations\2\1 > "C:\hydrus1d\Level_01.dir"
+    #C:
+    #cd C:\hydrus1d\
+    #H1D_clci<return.txt
+    #buffer=paste(buffer,"\"C:\\hydrus1d\\H1D_clci.exe\" .\\",kk,"\n", sep="")  
+  }                   
+  write(buffer,paste(outpath,"\\sim.bat",sep=""))
 }
 
 getSeq <- function(range, disc){
   return(seq(range[1],range[2],(range[2]-range[1])/disc))
 }
 
-d_thetar=getSeq(range_thetar,disc)
-d_thetas=getSeq(range_thetas,disc)
-d_alpha1=getSeq(range_alpha1,disc)
-d_alpha2=getSeq(range_alpha2,disc)
-d_n1=getSeq(range_n1,disc)
-d_n2=getSeq(range_n2,disc)
-d_ksat=getSeq(range_ksat,disc)
-d_l=getSeq(range_l,disc)
-d_w2=getSeq(range_w2,disc)
-d_pulse=getSeq(range_pulse,disc)
-map=matrix(ncol=11)
-
-gridd=expand.grid(d_thetar,d_thetas,d_alpha1,d_alpha2,d_n1,d_n2,d_ksat,d_l,d_w2,d_pulse)
-for(i in 1:length(gridd[,1])) {
-  dd=paste(".\\Simulations\\",i,sep="")
-  if(!dir.exists(dd)) {
-    dir.create(dd)
-  }
-  makeSelectorFit(i,5,gridd[i,1:9],gridd[,10])
-  map=rbind(map,c(i,gridd[i,1:9],gridd[,10]))
+getParams <- function(qq) {
+  glib=(gsub("range_","",rownames(qq)))
+  return(glib)
 }
-makeBatch(i)
-write.csv(map,map_fname)
-shell('S:\\Andrew\\Code\\alfalfa_Gb_git\\Simulations\\sim.bat')
+
+makeGrid <- function(qq,d) {
+  gnames=gsub("range_","d_",rownames(qq))
+  buf=list()
+  for(p in 1:length(rownames(qq))) {
+    lux=qq[p,2:3]
+    buf[[p]]=getSeq(as.matrix(lux),d)
+  }
+  return(expand.grid(buf))
+}
+
+# limits=list(modelid=c(5,5),
+#          thetar=c(0,0),
+#          thetas=c(0.44,0.44),
+#          alpha1=c(0.005,0.03),
+#          alpha2=c(0.01,0.05),
+#          n1=c(1.1,3),
+#          n2=c(2,4),
+#          ksat=c(0.01,0.5),
+#          l=c(0.5,0.5),
+#          w2=c(0.01,1),
+#          pulse=c(16,16))
+nanana=list(modelid=c(5,5),
+             thetar=c(0,0),
+             thetas=c(0.44,0.44),
+             alpha1=c(0.01,0.01),
+             alpha2=c(0.03,0.03),
+             n1=c(1.5,1.5),
+             n2=c(3,3),
+             ksat=c(0.03,0.03),
+             l=c(0.5,0.5),
+             w2=c(0.5,0.5),
+             pulse=c(16,16))
+params=names(nanana)
+#write.csv(limits,"LIMITS.IN")
+limits=read.csv("LIMITS.IN")
+limits=limits[,2:length(limits[1,])]
+centers=read.csv("CENTERS.IN")
+centers= cbind(centers[,3],centers[,3])
+names(centers)=params
+names(limits)=params
+limits=do.call(rbind,limits)
+#centers=do.call(rbind,centers)
+vparams=sapply(X = 1:length(limits[,1]), function(i) {limits[i,1]!=limits[i,2]})
+simz=combn(rownames(limits[vparams,]),2)
+nsim=(length(simz)/2)
+
+for(n in 1:nsim) {
+  simpath=paste(".\\Simulations\\",n,sep="")
+  if(!dir.exists(simpath)) {
+    dir.create(simpath,recursive=TRUE)
+  }
+  quid=centers
+  what=unlist(sapply(X = 1:length(vparams), function(i) { for(j in simz[,n]) if(names(vparams)[i]==j) return(TRUE); return(FALSE)}))
+  quid[what,]=limits[what,]
+  rownames(quid)=params
+  write.csv(quid,paste(simpath,"\\INIT.IN",sep=""))
+}
+
+print(paste("Making input files for ",nsim," 2-variable (disc=",disc,") simulations...",sep=""))
+for(n in 1:nsim) {
+  simpath=paste(".\\Simulations\\",n,sep="")
+  map_fname=paste(simpath,"\\MAP.MAP",sep="")
+  init_fname=paste(simpath,"\\INIT.IN",sep="")
+  
+  quid=read.csv(init_fname)
+  #params=getParams(quid)
+  gridd=makeGrid(quid,disc)
+  
+  for(i in 1:length(gridd[,1])) {
+    dd=paste(simpath,"\\",i,sep="")
+    if(!dir.exists(dd)) {
+      dir.create(dd,recursive=TRUE)
+    }
+    makeSelectorFit(i,gridd[i,1:length(params)],params,simpath)
+  }
+  makeBatch(i,n,simpath)
+  write.csv(gridd,map_fname)
+  print(paste("     Simulation #",n," input created",sep=""))
+}
+makeMasterBatch(nsim)
+print("DONE!")

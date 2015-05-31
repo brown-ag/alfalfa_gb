@@ -1,46 +1,29 @@
 #hydrus-1d multiparameter optimization script
 #MODELID = 5
 library(plot3D)
-readNodeFile <- function(id) {
+readNodeFile <- function(id,sim) {
   fn="OBS_NODE.out"
   fl="Node"
-  return(readH1DFile(id,fn,4,list(a="1.234",b="1.234",c="1.234",d="1.234"),12,1))
+  return(readH1DFile(id,sim,fn,4,list(a="1.234",b="1.234",c="1.234",d="1.234"),12,1))
 }
 
-readFitIn <- function(id) {
+readFitIn <- function(id,sim) {
   fn="FIT.IN"
-  return(readH1DFile(id,fn,5,list(a="1.234",b="1.234",c="1.234",d="1.234",e="1.234"),16,3))
+  return(readH1DFile(id,sim,fn,5,list(a="1.234",b="1.234",c="1.234",d="1.234",e="1.234"),16,3))
 }
 fee=""
 #H1D FILE reader
-readH1DFile <- function(id,fname,cols,whatt,skipp,trimm) {
-  obs_node_fname=paste("S:\\Andrew\\Code\\alfalfa_gb_git\\Simulations\\",id,"\\",fname,sep="")
+readH1DFile <- function(id,sim,fname,cols,whatt,skipp,trimm) {
+  obs_node_fname=paste("S:\\Andrew\\Code\\alfalfa_gb_git\\Simulations\\",sim,"\\",id,"\\",fname,sep="")
+  #print(c(sim,id,fname))
   con=file(obs_node_fname, open="r")
   flag=FALSE
-#  while (length(li <- readLines(con, n=1,warn=FALSE))>0) {
-#    baz=paste(baz,"\n",li,sep="")
-#  }
   iyx=suppressWarnings(scan(con,what=whatt,skip=skipp,fill=TRUE))
   close(con)
-  #for(li in baz) {
-  # if(flag) {
-  #   baz=gsub("\\s+",",",li,perl=TRUE)
-  #   qux=as.numeric(unlist(strsplit(baz[2:length(baz)],split=",")))
-  #   if(length(qux)==cols) {
-  #     buf=rbind(buf,qux)
-  #   }
-  # }
-  # if(grepl(strFlag,li,fixed=TRUE)) {
-  #   flag=TRUE
-  # }
-  #}
-  #baz=gsub("\\s+",",",iyx,perl=TRUE)
-  #qux=as.numeric(unlist(strsplit(baz[1:length(baz)-1],split=",")))
   mat=matrix(unlist(iyx),ncol=cols)
   mat=mat[1:(length(mat[,1])-trimm),]
   class(mat)="numeric"
   return(mat)
-  #return(buf[start:length(buf[,1]),3:(cols)])
 }
 
 getFitPoints <- function(x,fit,int=15) {
@@ -56,26 +39,62 @@ getFitPoints <- function(x,fit,int=15) {
   }
   return(buf)
 }
-errz=c()
-dimension=11
-map_axes=c(7,10)
-map_fname=".\\MAP.MAP"
-map=read.csv(map_fname)
-names(map)=c("id1","id2",params[2:length(params)])
-fit=readFitIn(1)
-node=readNodeFile(1)
-fp=array(getFitPoints(node[,1],fit[,1]))
-plot(fit[,2])
-est=matrix(nrow=187,ncol=(dimension^2))
-for(i in 1:(dimension^2)) {
-  node=readNodeFile(i)
+nsim=15
+serr=c()
+sest=list()
+mastermap=c()
+for(s in 1:nsim) {
+  simpath=paste(".\\Simulations\\",s,"\\",sep="")
+  errz=c()
+  dimension=11
+  map_fname=paste(simpath,"MAP.MAP",sep="")
+  map=read.csv(map_fname)
+  names(map)=c("id1","id2",params[2:length(params)])
+  mastermap=rbind(mastermap,map)
+  map_axes=(sapply(3:length(map[1,]),function(i) { if(sum(map[,i])!=(map[1,i]*length(map[,i]))) return(TRUE); return(FALSE) }))
+  map_axes=which(map_axes==TRUE)+2
+ #map_axes=c(7,10)
+  fit=readFitIn(1,s)
+  node=readNodeFile(1,s)
   fp=array(getFitPoints(node[,1],fit[,1]))
-  noder=aggregate(array(node[1:length(fp),2])~fp,FUN=mean)
-  #print(max(node[,1]))
-  est[,i]=noder[,2]
-  #lines(noder[,2],col=i)
-  errz=c(errz,sum((noder[,2]-fit[,2])^2))
+  plot(fit[,2])
+  est=matrix(nrow=66,ncol=(dimension^2))
+  
+  for(i in 1:(dimension^2)) {
+    node=readNodeFile(i,s)
+    fp=array(getFitPoints(node[,1],fit[,1]))
+    if(max(fp)<length(node[,2])) {
+      noder=aggregate(array(node[1:length(fp),2])~fp,FUN=mean)
+      length(fp)#print(max(node[,1]))
+      length(node[,2])
+      est[,i]=noder[,2]
+      #lines(noder[,2],col=i)
+      errz=c(errz,sum((noder[,2]-fit[,2])^2))      
+    } else {
+      length(node[,2])
+      est[,i]=noder[,2]
+      errz=c(errz,sum((noder[,2]-fit[,2])^2))
+    }
+  }
+ 
+  sest=cbind(sest,est)
+  serr=c(serr,errz)
 }
+serr=matrix(serr,ncol=nsim)
+tp=which(serr<(1000)) #take top percentile of model runs
+lala=matrix(unlist(lapply(2:length(names(mastermap)), function(i) { return(list(mean(mastermap[tp,i]), sd(mastermap[tp,i]))) })),nrow=2)
+makeLimit(lala)
+makeLimit <- function(tplist) {
+  xbar=tplist[1,1:length(tplist[1,])]
+  inter=2*tplist[2,1:length(tplist[1,])]
+  buf=lapply(1:length(xbar),function(i) return(c(xbar[i]-inter[i],xbar[i]+inter[i])))
+  #shell.exec(paste("cp .\\LIMITS.IN .\\LIMITS",strftime(Sys.time(),format="%d%m%Y:%H%M%S"),".IN",sep=""))
+  buf2=list(params,xbar)
+  names(buf)=params
+  write.csv(buf,"LIMITS.IN")
+  write.csv(buf2,"CENTERS.IN")
+}
+
 
 errz=c(errz,sum((noder-fit[,2])^2))
 map=na.omit(map)
