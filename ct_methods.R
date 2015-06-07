@@ -73,7 +73,7 @@ fee=""
 #H1D FILE reader
 readH1DFile <- function(id,sim,fname,cols,whatt,skipp,trimm,simdir) {
   obs_node_fname=paste(simdir,sim,"\\",id,"\\",fname,sep="")
-  #print(c(sim,id,fname))
+  print(obs_node_fname)
   con=file(obs_node_fname, open="r")
   flag=FALSE
   iyx=suppressWarnings(scan(con,what=whatt,skip=skipp,fill=TRUE))

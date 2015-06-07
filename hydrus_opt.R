@@ -34,22 +34,19 @@ for(s in 1:nsim) {
   est=matrix(nrow=65,ncol=(dimension^2))
   
   for(i in 1:(dimension^2)) {
-    node=readNodeFile(i,s,simdir)
+    node=tryCatch(readNodeFile(i,s,simdir),error=function(e) { return(cbind(1:length(fit[,1]),rep(1000,length(fit[,1])))) })
     fp=array(getFitPoints(node[,1],fit[,1]))
-    if(max(fp)<length(node[,2])) {
+	print(max(fp))
+	print(length(est[,i]))
+    if(max(fp)==length(est[,i])) {
       valz=node[1:length(fp),2]
       valz[is.na(valz)] = 1000
       noder=aggregate(array(valz)~fp,FUN=mean)
-	  model=noder[,2]
-	  if(length(est[,i])==length(model))
-		est[,i]=model
-	  else
-		est[,i]=rep(1000,length(est[,i]))
-      errz=c(errz,sum((noder[,2]-fit[,2])^2))      
-    } else {
       est[,i]=noder[,2]
       errz=c(errz,sum((noder[,2]-fit[,2])^2))
-    }
+    } else {
+		errz=c(errz,NA)
+	}
   }
  
   sest=cbind(sest,est)
@@ -62,7 +59,7 @@ makeLimit(lala)
 
 min(serr)
 which(serr==min(serr))
-lines(unlist(sest[,which(serr=<1000))
+lines(unlist(sest[,which(serr<=1000)]))
 plot(fit[,2],ylim=c(-250,0))
 eeek=which(serr<10000)
 for(e in eeek) {
@@ -79,6 +76,8 @@ nom=params[2:length(params)]
 kekeke=cbind(mastermap, array(serr))
 par(mfrow=c(1,1))
 colorz=rainbow(dimension)
+
+write.csv(kekeke,paste(simdir,"errormap.csv",sep=""))
 for(ff in 1:ncol(serr)) {
   axes=axis_map[ff,]
   targ=kekeke[last:cur,]
@@ -91,7 +90,8 @@ for(ff in 1:ncol(serr)) {
    f <- function(X) min(X, na.rm=TRUE)
 
    rf=focal(ras,w=matrix(1,3,3))
-   localmin <- focal(ras,fun=f,pad=TRUE,padValue=NA,w=matrix(1,(dimension^2)+1,(dimension^2)+1))
+   iseven=!((dimension^2)%%2)
+   localmin <- focal(ras,fun=f,pad=TRUE,padValue=NA,w=matrix(1,(dimension^2)+iseven,(dimension^2)+iseven))
    ras2=ras==localmin
    minXY=xyFromCell(ras2,Which(ras2==1,cells=TRUE))
    minx=matrix(minXY)
@@ -102,4 +102,3 @@ for(ff in 1:ncol(serr)) {
   last=cur+1
   cur=cur+(dimension^2)
 }
-write.csv(kekeke,"errormap.csv")
