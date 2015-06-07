@@ -34,7 +34,7 @@ makeBatch <- function(last_index,n,outpath,simdir) {
   buffer="@echo off\n" 
   wd=gsub("/","\\",getwd(),fixed=TRUE)
   for(kk in 1:(last_index)) {
-    buffer=paste(buffer,"@echo ",simdir,n,"\\",kk," > C:\\hydrus1d\\Level_01.dir\nC:\ncd C:\\hydrus1d\\\nH1D_clci<return.txt\nS:\ncd ",simdir,"\n", sep="") 
+    buffer=paste(buffer,"@echo ",simdir,n,"\\",kk," > C:\\hydrus1d\\Level_01.dir\nC:\ncd C:\\hydrus1d\\\nH1D_clci<return.txt\n",substr(simdir,0,1),":\ncd ",simdir,"\n", sep="") 
   }                   
   write(buffer,paste(outpath,"\\sim.bat",sep=""))
 }
@@ -62,12 +62,12 @@ makeGrid <- function(qq,d) {
 readNodeFile <- function(id,sim,simdir) {
   fn="OBS_NODE.out"
   fl="Node"
-  return(readH1DFile(id,sim,fn,4,list(a="1.234",b="1.234",c="1.234",d="1.234"),12,1))
+  return(readH1DFile(id,sim,fn,4,list(a="1.234",b="1.234",c="1.234",d="1.234"),12,1,simdir))
 }
 
 readFitIn <- function(id,sim,simdir) {
   fn="FIT.IN"
-  return(readH1DFile(id,sim,fn,5,list(a="1.234",b="1.234",c="1.234",d="1.234",e="1.234"),16,3))
+  return(readH1DFile(id,sim,fn,5,list(a="1.234",b="1.234",c="1.234",d="1.234",e="1.234"),16,3,simdir))
 }
 fee=""
 #H1D FILE reader

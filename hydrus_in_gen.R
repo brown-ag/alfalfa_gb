@@ -1,7 +1,7 @@
 #hydrus-1d input generator
 source("ct_methods.R")
-template_set="MIM1"
-simdir="S:\\Andrew\\Code\\alfalfa_gb_git\\Simulations_MIM1\\"
+template_set="MIM"
+simdir="C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_MIM1\\"
 selector_fname=paste(".\\Templates\\",template_set,"\\SELECTOR_TEMPLATE.IN",sep="")
 fit_fname=paste(".\\Templates\\",template_set,"\\FIT_TEMPLATE.IN",sep="")
 atmo_fname=paste(".\\Templates\\",template_set,"\\ATMOSPH_TEMPLATE.IN",sep="")
@@ -64,7 +64,7 @@ centers=do.call(rbind,centers)
 vparams=sapply(X = 1:length(limits[,1]), function(i) {limits[i,1]!=limits[i,2]})
 simz=combn(rownames(limits[vparams,]),2)
 nsim=(length(simz)/2)
-
+print(simdir)
 print(paste("Making initial parameter maps for",nsim,"simulations..."))
 for(n in 1:nsim) {
   simpath=paste(simdir,n,sep="")
