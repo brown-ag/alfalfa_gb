@@ -77,7 +77,7 @@ kekeke=cbind(mastermap, array(serr))
 par(mfrow=c(1,1))
 colorz=rainbow(dimension)
 
-write.csv(kekeke,paste(simdir,"errormap.csv"))
+write.csv(kekeke,paste(simdir,"errormap.csv",sep=""))
 for(ff in 1:ncol(serr)) {
   axes=axis_map[ff,]
   targ=kekeke[last:cur,]
