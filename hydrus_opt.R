@@ -6,11 +6,11 @@ params_MIM=c("modelid","thetar","thetas","alpha","n","ksat","l","thrim","thsim",
 params=params_MIM
 
 dimension=11
-simdir="C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_MIM1\\"
+simdir="C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_vGM1\\"
 
 library(plot3D)
 
-nsim=1
+nsim=15
 serr=c()
 sest=list()
 mastermap=c()
