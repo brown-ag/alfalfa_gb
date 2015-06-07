@@ -1,77 +1,48 @@
 #hydrus-1d multiparameter optimization script
 #MODELID = 5
+source("ct_methods.R")
+params_MIM=c("modelid","thetar","thetas","alpha","n","ksat","l","thrim","thsim","omega","pulse")
+# params_DUR=c("MODELID","THETAR","THETAS","ALPHA1","ALPHA2","N1","N2","KSAT","L","W2"     ,"PULSE")
+params=params_MIM
+
+dimension=26
+simdir="S:\\Andrew\\Code\\alfalfa_gb_git\\Simulations_MIM1"
+
 library(plot3D)
-readNodeFile <- function(id,sim) {
-  fn="OBS_NODE.out"
-  fl="Node"
-  return(readH1DFile(id,sim,fn,4,list(a="1.234",b="1.234",c="1.234",d="1.234"),12,1))
-}
 
-readFitIn <- function(id,sim) {
-  fn="FIT.IN"
-  return(readH1DFile(id,sim,fn,5,list(a="1.234",b="1.234",c="1.234",d="1.234",e="1.234"),16,3))
-}
-fee=""
-#H1D FILE reader
-readH1DFile <- function(id,sim,fname,cols,whatt,skipp,trimm) {
-  obs_node_fname=paste("S:\\Andrew\\Code\\alfalfa_gb_git\\Simulations\\",sim,"\\",id,"\\",fname,sep="")
-  #print(c(sim,id,fname))
-  con=file(obs_node_fname, open="r")
-  flag=FALSE
-  iyx=suppressWarnings(scan(con,what=whatt,skip=skipp,fill=TRUE))
-  close(con)
-  mat=matrix(unlist(iyx),ncol=cols)
-  mat=mat[1:(length(mat[,1])-trimm),]
-  class(mat)="numeric"
-  return(mat)
-}
-
-getFitPoints <- function(x,fit,int=15) {
-  x=array(x)
-  mmin=0
-  mmax=0
-  buf=c()
-  for(i in 1:length(fit)) {
-    mmax=int*i
-    interval=(x[((x<=mmax) + (x>mmin))-1])
-    buf=c(buf,rep(i,length(interval)))
-    mmin=mmax
-  }
-  return(buf)
-}
-nsim=15
+nsim=1
 serr=c()
 sest=list()
 mastermap=c()
+axis_map=c()
 for(s in 1:nsim) {
-  simpath=paste(".\\Simulations\\",s,"\\",sep="")
+  simpath=paste(simdir,s,"\\",sep="")
   errz=c()
-  dimension=11
   map_fname=paste(simpath,"MAP.MAP",sep="")
   map=read.csv(map_fname)
   names(map)=c("id1","id2",params[2:length(params)])
   mastermap=rbind(mastermap,map)
   map_axes=(sapply(3:length(map[1,]),function(i) { if(sum(map[,i])!=(map[1,i]*length(map[,i]))) return(TRUE); return(FALSE) }))
   map_axes=which(map_axes==TRUE)+2
+  
+  axis_map=rbind(axis_map,map_axes)
  #map_axes=c(7,10)
   fit=readFitIn(1,s)
   node=readNodeFile(1,s)
   fp=array(getFitPoints(node[,1],fit[,1]))
   plot(fit[,2])
-  est=matrix(nrow=66,ncol=(dimension^2))
+  est=matrix(nrow=65,ncol=(dimension^2))
   
   for(i in 1:(dimension^2)) {
     node=readNodeFile(i,s)
     fp=array(getFitPoints(node[,1],fit[,1]))
     if(max(fp)<length(node[,2])) {
-      noder=aggregate(array(node[1:length(fp),2])~fp,FUN=mean)
-      length(fp)#print(max(node[,1]))
-      length(node[,2])
+      valz=node[1:length(fp),2]
+      valz[is.na(valz)] = 1000
+      noder=aggregate(array(valz)~fp,FUN=mean)
       est[,i]=noder[,2]
-      #lines(noder[,2],col=i)
       errz=c(errz,sum((noder[,2]-fit[,2])^2))      
     } else {
-      length(node[,2])
       est[,i]=noder[,2]
       errz=c(errz,sum((noder[,2]-fit[,2])^2))
     }
@@ -84,18 +55,53 @@ serr=matrix(serr,ncol=nsim)
 tp=which(serr<(1000)) #take top percentile of model runs
 lala=matrix(unlist(lapply(2:length(names(mastermap)), function(i) { return(list(mean(mastermap[tp,i]), sd(mastermap[tp,i]))) })),nrow=2)
 makeLimit(lala)
-makeLimit <- function(tplist) {
-  xbar=tplist[1,1:length(tplist[1,])]
-  inter=2*tplist[2,1:length(tplist[1,])]
-  buf=lapply(1:length(xbar),function(i) return(c(xbar[i]-inter[i],xbar[i]+inter[i])))
-  #shell.exec(paste("cp .\\LIMITS.IN .\\LIMITS",strftime(Sys.time(),format="%d%m%Y:%H%M%S"),".IN",sep=""))
-  buf2=list(params,xbar)
-  names(buf)=params
-  write.csv(buf,"LIMITS.IN")
-  write.csv(buf2,"CENTERS.IN")
+
+min(serr)
+which(serr==min(serr))
+lines(unlist(sest[,which(serr=<1000))
+plot(fit[,2],ylim=c(-250,0))
+eeek=which(serr<10000)
+for(e in eeek) {
+  lines((1:length(fit[,2])),unlist(sest[1:length(sest[,e]),e]))
 }
+# par(mfrow=c(3,5))
+require(gridExtra)
+require(raster)
+plotz=c()
+last=1
+cur=dimension^2
+library(plot3D)
+nom=params[2:length(params)]
+kekeke=cbind(mastermap, array(serr))
+par(mfrow=c(1,1))
+colorz=rainbow(dimension)
+for(ff in 1:ncol(serr)) {
+  axes=axis_map[ff,]
+  targ=kekeke[last:cur,]
+  #print(contourplot(targ[,13]~targ[,axes[1]]*targ[,axes[2]],xlab=nom[axes[1]-2],ylab=nom[axes[2]-2]))
+  serr2=serr
+  serr2[serr2>20000]=20000
+  ras=raster(nrows=dimension,ncols=dimension,vals=matrix(serr2[last:cur]),xmn=min(mastermap[last:cur,axis_map[ff,1]]),xmx=max(mastermap[last:cur,axis_map[ff,1]]),ymn=min(mastermap[last:cur,axis_map[ff,2]]),ymx=max(mastermap[last:cur,axis_map[ff,2]]))
+#vals=unlist(targ[,13]),xmn=min(targ[,axes[1]]),xmx=max(targ[,axes[1]]),ymn=min(targ[,axes[2]]),ymx=max(targ[,axes[2]]))
+   #filled.contour(x=targ[,axes[1]],y=targ[,axes[2]],z=targ[,13])
+   f <- function(X) min(X, na.rm=TRUE)
 
+   rf=focal(ras,w=matrix(1,3,3))
+   localmin <- focal(ras,fun=f,pad=TRUE,padValue=NA,w=matrix(1,(dimension^2)+1,(dimension^2)+1))
+   ras2=ras==localmin
+   minXY=xyFromCell(ras2,Which(ras2==1,cells=TRUE))
+   minx=matrix(minXY)
+   #filledContour(ras,col=terrain.colors(log10(err[,3])*5))
+   filledContour(ras,col=colorz,plot.axes={axis(1);axis(2);points(minx[1,1],minx[2,1]);},xlab=nom[axes[1]-2],ylab=nom[axes[2]-2])
+   #contour(ras,col=terrain.colors(log10(matrix(serr[last:cur]))),nlevels=100)#,nlevels=100,xlab=(names(map)[,axes[1]]),ylab=(names(map)[,axes[1]]))
+#   points(minXY,pch=3,col=1)
+  last=cur+1
+  cur=cur+(dimension^2)
+}
+write.csv(kekeke,"errormap.csv")
 
+library(lattice)
+contourplot
 errz=c(errz,sum((noder-fit[,2])^2))
 map=na.omit(map)
 err=cbind(map[,map_axes],errz[2:((dimension^2)+1)])
@@ -140,7 +146,7 @@ contour3d(x=xx,y=yy)
 persp3d(xx,yy,z=zz-(mean(zz))/mean(zz))
 
 library(raster)
-ras=raster(nrows=11,ncols=11,vals=log10(err[,3]),xmn=min(err[,1]),xmx=max(err[,1]),ymn=min(err[,2]),ymx=max(err[,2]))
+ras=raster(nrows=26,ncols=26,vals=log10(tar[,13]),xmn=min(err[,1]),xmx=max(err[,1]),ymn=min(err[,2]),ymx=max(err[,2]))
 filledContour(ras)
 f <- function(X) min(X, na.rm=TRUE)
 localmin <- focal(ras,fun=f,pad=TRUE,padValue=NA,w=matrix(1,121,121))

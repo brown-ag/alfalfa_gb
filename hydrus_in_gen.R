@@ -1,10 +1,13 @@
 #hydrus-1d input generator
-
-selector_fname=".\\Templates\\SELECTOR_TEMPLATE.IN"
-fit_fname=".\\Templates\\FIT_TEMPLATE.IN"
-atmo_fname=".\\Templates\\ATMOSPH_TEMPLATE.IN"
-prof_fname=".\\Templates\\PROFILE_TEMPLATE.DAT"
-H1D_fname=".\\Templates\\HYDRUS1D_TEMPLATE.DAT"
+source("ct_methods.R")
+template_set="MIM1"
+simdir="S:\\Andrew\\Code\\alfalfa_gb_git\\Simulations_MIM1\\"
+selector_fname=paste(".\\Templates\\",template_set,"\\SELECTOR_TEMPLATE.IN",sep="")
+fit_fname=paste(".\\Templates\\",template_set,"\\FIT_TEMPLATE.IN",sep="")
+atmo_fname=paste(".\\Templates\\",template_set,"\\ATMOSPH_TEMPLATE.IN",sep="")
+prof_fname=paste(".\\Templates\\",template_set,"\\PROFILE_TEMPLATE.DAT",sep="")
+H1D_fname=paste(".\\Templates\\",template_set,"\\HYDRUS1D_TEMPLATE.DAT",sep="")
+LIMITS_fname=paste(".\\Templates\\",template_set,"\\LIMITS.IN",sep="")
 selector_template=readChar(selector_fname,file.info(selector_fname)$size)
 fit_template=readChar(fit_fname,file.info(fit_fname)$size)
 atmo_template=readChar(atmo_fname,file.info(atmo_fname)$size)
@@ -12,62 +15,6 @@ prof_template=readChar(prof_fname,file.info(prof_fname)$size)
 h1d_template=readChar(H1D_fname,file.info(H1D_fname)$size)
 
 disc=10 #'disc' defines the discretization within the specified min and maximum
-
-makeSelectorFit <- function(n,pval,params,outpath) {
-  buffer=c(selector_template,fit_template,atmo_template,prof_template,h1d_template)
-  fnames=c("SELECTOR.IN","FIT.IN","ATMOSPH.IN","PROFILE.DAT","HYDRUS1D.DAT")
-  values=c(pval)
-  for(p in 1:length(params)) {
-    for(qq in 1:length(buffer))
-      buffer[qq]=gsub(paste("%",toupper(params[p]),"%",sep=""),values[p],buffer[qq])
-  }
-  for(qq in 1:length(buffer)) {
-    writeChar(buffer[qq],paste(outpath,"\\",n,"\\",fnames[qq],sep=""))
-  }
-}
-
-makeMasterBatch <- function(nsim) {
-  buffer="@echo off\n"
-  for(kk in 1:(nsim)) {
-    buffer=paste(buffer,"cd .\\",kk,"\n",sep="")  
-    buffer=paste(buffer,"call sim.bat\n", sep="")  
-    #buffer=paste(buffer,"cd ..\n", sep="")  
-  }
-  write(buffer,paste("S:\\Andrew\\Code\\alfalfa_gb_git\\Simulations\\master.bat",sep=""))
-}
-
-makeBatch <- function(last_index,n,outpath) {
-  buffer="@echo off\n" 
-  wd=gsub("/","\\",getwd(),fixed=TRUE)
-  for(kk in 1:(last_index)) {
-    buffer=paste(buffer,"@echo ", wd,"\\Simulations\\",n,"\\",kk," > C:\\hydrus1d\\Level_01.dir\nC:\ncd C:\\hydrus1d\\\nH1D_clci<return.txt\nS:\ncd ",wd,"\\Simulations\n", sep="") 
-    #@echo S:\Andrew\Code\alfalfa_gb_git\Simulations\2\1 > "C:\hydrus1d\Level_01.dir"
-    #C:
-    #cd C:\hydrus1d\
-    #H1D_clci<return.txt
-    #buffer=paste(buffer,"\"C:\\hydrus1d\\H1D_clci.exe\" .\\",kk,"\n", sep="")  
-  }                   
-  write(buffer,paste(outpath,"\\sim.bat",sep=""))
-}
-
-getSeq <- function(range, disc){
-  return(seq(range[1],range[2],(range[2]-range[1])/disc))
-}
-
-getParams <- function(qq) {
-  glib=(gsub("range_","",rownames(qq)))
-  return(glib)
-}
-
-makeGrid <- function(qq,d) {
-  gnames=gsub("range_","d_",rownames(qq))
-  buf=list()
-  for(p in 1:length(rownames(qq))) {
-    lux=qq[p,2:3]
-    buf[[p]]=getSeq(as.matrix(lux),d)
-  }
-  return(expand.grid(buf))
-}
 
 # limits=list(modelid=c(5,5),
 #          thetar=c(0,0),
@@ -80,33 +27,47 @@ makeGrid <- function(qq,d) {
 #          l=c(0.5,0.5),
 #          w2=c(0.01,1),
 #          pulse=c(16,16))
-nanana=list(modelid=c(5,5),
-             thetar=c(0,0),
-             thetas=c(0.44,0.44),
-             alpha1=c(0.01,0.01),
-             alpha2=c(0.03,0.03),
-             n1=c(1.5,1.5),
-             n2=c(3,3),
-             ksat=c(0.03,0.03),
-             l=c(0.5,0.5),
-             w2=c(0.5,0.5),
-             pulse=c(16,16))
-params=names(nanana)
+# nanana=list(modelid=c(5,5),
+#              thetar=c(0,0),
+#              thetas=c(0.44,0.44),
+#              alpha1=c(0.01,0.01),
+#              alpha2=c(0.03,0.03),
+#              n1=c(1.5,1.5),
+#              n2=c(3,3),
+#              ksat=c(0.03,0.03),
+#              l=c(0.5,0.5),
+#              w2=c(0.5,0.5),
+#              pulse=c(16,16))
+#mim-in
+# nanana=list(modelid=c(6,6),
+#             thetar=c(0,0),
+#             thetas=c(0.44,0.44),
+#             alpha=c(0.01,0.03),
+#             n=c(1.1,2),
+#             ksat=c(0.1,1),
+#             l=c(0.1,1),
+#             thrim=c(0,0.2),
+#             thsim=c(0,0.4),
+#             omega=c(0.1,1),
+#             pulse=c(16,16))
+#params=names(nanana)
 #write.csv(limits,"LIMITS.IN")
-limits=read.csv("LIMITS.IN")
+limits=read.csv(LIMITS_fname)
 limits=limits[,2:length(limits[1,])]
-centers=read.csv("CENTERS.IN")
-centers= cbind(centers[,3],centers[,3])
-names(centers)=params
-names(limits)=params
+params=names(limits)
+centers=(limits[2,1:length(limits[1,])]+limits[1,1:length(limits[1,])])/2
+centers=rbind(centers,centers)
+# names(centers)=params
+# names(limits)=params
 limits=do.call(rbind,limits)
-#centers=do.call(rbind,centers)
+centers=do.call(rbind,centers)
 vparams=sapply(X = 1:length(limits[,1]), function(i) {limits[i,1]!=limits[i,2]})
 simz=combn(rownames(limits[vparams,]),2)
 nsim=(length(simz)/2)
 
+print(paste("Making initial parameter maps for",nsim,"simulations..."))
 for(n in 1:nsim) {
-  simpath=paste(".\\Simulations\\",n,sep="")
+  simpath=paste(simdir,n,sep="")
   if(!dir.exists(simpath)) {
     dir.create(simpath,recursive=TRUE)
   }
@@ -117,9 +78,9 @@ for(n in 1:nsim) {
   write.csv(quid,paste(simpath,"\\INIT.IN",sep=""))
 }
 
-print(paste("Making input files for ",nsim," 2-variable (disc=",disc,") simulations...",sep=""))
+print(paste("Making HYDRUS input files for ",nsim," 2-variable (disc=",disc,") simulations...",sep=""))
 for(n in 1:nsim) {
-  simpath=paste(".\\Simulations\\",n,sep="")
+  simpath=paste(simdir,n,sep="")
   map_fname=paste(simpath,"\\MAP.MAP",sep="")
   init_fname=paste(simpath,"\\INIT.IN",sep="")
   
@@ -134,9 +95,9 @@ for(n in 1:nsim) {
     }
     makeSelectorFit(i,gridd[i,1:length(params)],params,simpath)
   }
-  makeBatch(i,n,simpath)
+  makeBatch(i,n,simpath,simdir)
   write.csv(gridd,map_fname)
   print(paste("     Simulation #",n," input created",sep=""))
 }
-makeMasterBatch(nsim)
+makeMasterBatch(nsim,simdir)
 print("DONE!")
