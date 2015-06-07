@@ -40,7 +40,11 @@ for(s in 1:nsim) {
       valz=node[1:length(fp),2]
       valz[is.na(valz)] = 1000
       noder=aggregate(array(valz)~fp,FUN=mean)
-      est[,i]=noder[,2]
+	  model=noder[,2]
+	  if(length(est[,i])==length(model))
+		est[,i]=model
+	  else
+		est[,i]=rep(1000,length(est[,i]))
       errz=c(errz,sum((noder[,2]-fit[,2])^2))      
     } else {
       est[,i]=noder[,2]
