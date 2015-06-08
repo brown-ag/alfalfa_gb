@@ -7,7 +7,7 @@ params=params_DUR
 
 template_set="vGM"
 dimension=26
-simdir="C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_vGM2\\"
+simdir="C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_vGM3\\"
 
 nsim=10
 serr=c()

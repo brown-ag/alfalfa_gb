@@ -2,8 +2,10 @@
 source("ct_methods.R")
 
 template_set="vGM"
-simdir=paste("C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_",template_set,"2\\",sep="")
+simdir=paste("C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_",template_set,"3\\",sep="")
 iteration=2
+disc=25 #'disc' defines the discretization within the specified min and maximum
+
 
 selector_fname=paste(".\\Templates\\",template_set,"\\SELECTOR_TEMPLATE.IN",sep="")
 fit_fname=paste(".\\Templates\\",template_set,"\\FIT_TEMPLATE.IN",sep="")
@@ -16,8 +18,6 @@ fit_template=readChar(fit_fname,file.info(fit_fname)$size)
 atmo_template=readChar(atmo_fname,file.info(atmo_fname)$size)
 prof_template=readChar(prof_fname,file.info(prof_fname)$size)
 h1d_template=readChar(H1D_fname,file.info(H1D_fname)$size)
-
-disc=25 #'disc' defines the discretization within the specified min and maximum
 
 # limits=list(modelid=c(5,5),
 #          thetar=c(0,0),
