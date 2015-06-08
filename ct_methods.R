@@ -65,6 +65,13 @@ readNodeFile <- function(id,sim,simdir) {
   return(readH1DFile(id,sim,fn,4,list(a="1.234",b="1.234",c="1.234",d="1.234"),12,1,simdir))
 }
 
+readFitOutFile <- function(id,sim,simdir,fp) {
+    fn="FIT.out"
+    fl="Node"
+    buf=(readH1DFile(id,sim,fn,7,list(a="1.234",b="1.234",c="1.234",d="1.234",e="1.234",f="1.234",g="1.234"),121,1,simdir))
+	return(buf[1:fp,c(2,4)])
+}
+
 readFitIn <- function(id,sim,simdir) {
   fn="FIT.IN"
   return(readH1DFile(id,sim,fn,5,list(a="1.234",b="1.234",c="1.234",d="1.234",e="1.234"),16,3,simdir))
@@ -73,7 +80,7 @@ fee=""
 #H1D FILE reader
 readH1DFile <- function(id,sim,fname,cols,whatt,skipp,trimm,simdir) {
   obs_node_fname=paste(simdir,sim,"\\",id,"\\",fname,sep="")
-  print(obs_node_fname)
+  print(paste(sim, id))
   con=file(obs_node_fname, open="r")
   flag=FALSE
   iyx=suppressWarnings(scan(con,what=whatt,skip=skipp,fill=TRUE))
