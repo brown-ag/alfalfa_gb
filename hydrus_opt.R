@@ -3,12 +3,12 @@
 source("ct_methods.R")
 params_MIM=c("modelid","thetar","thetas","alpha","n","ksat","l","thrim","thsim","omega","pulse")
 params_DUR=c("MODELID","THETAR","THETAS","ALPHA1","ALPHA2","N1","N2","KSAT","L","W2","PULSE")
-params=params_MIM
+params=params_DUR
 
 dimension=11
-simdir="C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_MIM1\\"
+simdir="C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_vGM1\\"
 
-nsim=21
+nsim=15
 serr=c()
 sest=list()
 mastermap=c()
@@ -38,14 +38,14 @@ for(s in 1:nsim) {
 	test2=!(length(fp) > length(node[,1]))
 	if(test1 & test2) {
 	#if(max(fp)==length(est[,i])) {
-	  print(length(fp))
-	  print(length(node[,1]))
+	  #print(length(fp))
+	  #print(length(node[,1]))
       valz=node[1:length(fp),2]
       valz[is.na(valz)] = 1000
       noder=aggregate(array(valz)~fp,FUN=mean)
       est[,i]=noder[1:length(est[,i]),2]
       errz=c(errz,sum((noder[,2]-fit[,2])^2))
-	  print(errz)
+	  #print(errz)
     } else {
 		errz=c(errz,NA)
 	}
