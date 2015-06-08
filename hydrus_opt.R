@@ -3,7 +3,7 @@
 source("ct_methods.R")
 params_MIM=c("modelid","thetar","thetas","alpha","n","ksat","l","thrim","thsim","omega","pulse")
 params_DUR=c("MODELID","THETAR","THETAS","ALPHA1","ALPHA2","N1","N2","KSAT","L","W2","PULSE")
-params=params_MIM
+params=params_DUR
 
 template_set="vGM"
 dimension=26

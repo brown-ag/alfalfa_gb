@@ -3,7 +3,7 @@ source("ct_methods.R")
 
 template_set="vGM"
 simdir=paste("C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_",template_set,"3\\",sep="")
-iteration=2
+iteration=3
 disc=25 #'disc' defines the discretization within the specified min and maximum
 
 
