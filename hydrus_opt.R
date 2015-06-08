@@ -5,10 +5,11 @@ params_MIM=c("modelid","thetar","thetas","alpha","n","ksat","l","thrim","thsim",
 params_DUR=c("MODELID","THETAR","THETAS","ALPHA1","ALPHA2","N1","N2","KSAT","L","W2","PULSE")
 params=params_MIM
 
-dimension=11
-simdir="C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_MIM1\\"
+template_set="vGM"
+dimension=26
+simdir="C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_vGM2\\"
 
-nsim=21
+nsim=10
 serr=c()
 sest=list()
 mastermap=c()
@@ -26,15 +27,17 @@ for(s in 1:nsim) {
   axis_map=rbind(axis_map,map_axes)
  #map_axes=c(7,10)
   fit=readFitIn(1,s,simdir)
-  node=readNodeFile(1,s,simdir)
-  fp=array(getFitPoints(node[,1],fit[,1]))
+  #node=readNodeFile(1,s,simdir)
+  fp=66#array(getFitPoints(node[,1],fit[,1]))
   plot(fit[,2]) 
-  est=matrix(nrow=65,ncol=(dimension^2))
+  est=matrix(nrow=66,ncol=(dimension^2))
   
   for(i in 1:(dimension^2)) {
-    node=tryCatch(readNodeFile(i,s,simdir),error=function(e) { return(cbind(1:length(fit[,1]),rep(1000,10000))) })
-    fp=array(getFitPoints(node[,1],fit[1:length(fit[,1]),1]))
-    test1=((max(fp[which(fp<=length(est[,i]))]))==length(est[,i])) #makes sure the dimensions of the matrices line up by trimming fitpoints
+    #node=tryCatch(readNodeFile(i,s,simdir),error=function(e) { return(cbind(1:length(fit[,1]),rep(1000,10000))) })
+    node=readFitOutFile(i,s,simdir,fp)
+	#fp=array(getFitPoints(node[,1],fit[1:length(fit[,1]),1]))
+    #test1=((max(fp[which(fp<=length(est[,i]))]))==length(est[,i])) #makes sure the dimensions of the matrices line up by trimming fitpoints
+	test1=TRUE
 	test2=!(length(fp) > length(node[,1]))
 	if(test1 & test2) {
 	#if(max(fp)==length(est[,i])) {
@@ -42,15 +45,15 @@ for(s in 1:nsim) {
 	  #print(length(node[,1]))
       valz=node[1:length(fp),2]
       valz[is.na(valz)] = 1000
-      noder=aggregate(array(valz)~fp,FUN=mean)
-      est[,i]=noder[1:length(est[,i]),2]
+      noder=node#aggregate(array(valz)~fp,FUN=mean)
+      est[,i]=noder[,2]
       errz=c(errz,sum((noder[,2]-fit[,2])^2))
 	  #print(errz)
     } else {
 		errz=c(errz,NA)
 	}
   }
- 
+
   sest=cbind(sest,est)
   serr=c(serr,errz)
 }

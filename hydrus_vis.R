@@ -24,8 +24,9 @@ for(i in 1:length(nsims)) {
 	serr[which(serr>20000)]=20000
 	print(paste("Lowest SSQ:",min(serr)))
 	print(paste("Model ID lowest SSQ:",which(serr==min(serr))))
-	plot(fit[1:65,2],ylim=c(-250,0))
-	#lines(unlist(sest[1:65,which(serr<=1000)]))
+	plot(fit[,2],ylim=c(-250,0))
+	ran=range(serr)
+	lines(unlist(sest[,which(serr<=0.05*(ran[2]-ran[1])]))
 	#eeek=which(serr<10000)
 	#for(e in eeek) {
 	#  lines((1:length(fit[,2])),unlist(sest[1:length(sest[,e]),e]))
