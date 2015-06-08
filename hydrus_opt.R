@@ -6,7 +6,7 @@ params_MIM=c("modelid","thetar","thetas","alpha","n","ksat","l","thrim","thsim",
 params=params_MIM
 
 dimension=11
-simdir="C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_Durner1\\"
+simdir="C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_vGM1\\"
 
 nsim=15
 serr=c()
