@@ -8,9 +8,6 @@ params=params_MIM
 dimension=11
 simdir="C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_Durner1\\"
 
-
-library(plot3D)
-
 nsim=15
 serr=c()
 sest=list()
