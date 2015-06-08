@@ -1,17 +1,18 @@
 library(raster)
-library(rasterVis)
 library(plot3D)
 library(rgl)
 source("ct_methods.R")
 dimension=11
 simdir="C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_Durner1\\"
 nsim=15
-kekeke=read.csv
+kekeke=read.csv(paste(simdir,"errormap.csv",sep=""))
+mastermap=kekeke[,1:(length(names(kekeke))-1)]
+serr=kekeke[,length(names(kekeke))]
 tp=which(serr<(1000)) #take top percentile of model runs
 lala=matrix(unlist(lapply(2:length(names(mastermap)), function(i) { return(list(mean(mastermap[tp,i]), sd(mastermap[tp,i]))) })),nrow=2)
-makeLimit(lala)
+#makeLimit(lala)
 
-fit=readFitIn(1,s,simdir)
+fit=readFitIn(1,1,simdir)
 min(serr)
 which(serr==min(serr))
 lines(unlist(sest[,which(serr<=1000)]))
