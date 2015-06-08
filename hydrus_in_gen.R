@@ -1,8 +1,8 @@
 #hydrus-1d input generator
 source("ct_methods.R")
 
-template_set="vGM"
-simdir="C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_vGM1\\"
+template_set="Durner"
+simdir="C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_Durner1\\"
 
 
 selector_fname=paste(".\\Templates\\",template_set,"\\SELECTOR_TEMPLATE.IN",sep="")
