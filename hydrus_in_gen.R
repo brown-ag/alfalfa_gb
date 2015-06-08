@@ -1,7 +1,9 @@
 #hydrus-1d input generator
 source("ct_methods.R")
+
 template_set="Durner"
 simdir="C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_Durner1\\"
+
 selector_fname=paste(".\\Templates\\",template_set,"\\SELECTOR_TEMPLATE.IN",sep="")
 fit_fname=paste(".\\Templates\\",template_set,"\\FIT_TEMPLATE.IN",sep="")
 atmo_fname=paste(".\\Templates\\",template_set,"\\ATMOSPH_TEMPLATE.IN",sep="")
