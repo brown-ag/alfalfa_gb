@@ -30,20 +30,24 @@ for(s in 1:nsim) {
   fit=readFitIn(1,s,simdir)
   node=readNodeFile(1,s,simdir)
   fp=array(getFitPoints(node[,1],fit[,1]))
-  plot(fit[,2])
+  plot(fit[,2]) 
   est=matrix(nrow=65,ncol=(dimension^2))
   
   for(i in 1:(dimension^2)) {
-    node=tryCatch(readNodeFile(i,s,simdir),error=function(e) { return(cbind(1:length(fit[,1]),rep(1000,length(fit[,1])))) })
-    fp=array(getFitPoints(node[,1],fit[,1]))
-	print(max(fp))
-	print(length(est[,i]))
-    if(max(fp)==length(est[,i])) {
+    node=tryCatch(readNodeFile(i,s,simdir),error=function(e) { return(cbind(1:length(fit[,1]),rep(1000,10000))) })
+    fp=array(getFitPoints(node[,1],fit[1:length(fit[,1]),1]))
+    test1=((max(fp[which(fp<=length(est[,i]))]))==length(est[,i])) #makes sure the dimensions of the matrices line up by trimming fitpoints
+	test2=!(length(fp) > length(node[,1]))
+	if(test1 & test2) {
+	#if(max(fp)==length(est[,i])) {
+	  print(length(fp))
+	  print(length(node[,1]))
       valz=node[1:length(fp),2]
       valz[is.na(valz)] = 1000
       noder=aggregate(array(valz)~fp,FUN=mean)
-      est[,i]=noder[,2]
+      est[,i]=noder[1:length(est[,i]),2]
       errz=c(errz,sum((noder[,2]-fit[,2])^2))
+	  print(errz)
     } else {
 		errz=c(errz,NA)
 	}
@@ -53,6 +57,8 @@ for(s in 1:nsim) {
   serr=c(serr,errz)
 }
 serr=matrix(serr,ncol=nsim)
+kekeke=cbind(mastermap, array(serr))
+write.csv(kekeke,paste(simdir,"errormap.csv",sep=""))
 tp=which(serr<(1000)) #take top percentile of model runs
 lala=matrix(unlist(lapply(2:length(names(mastermap)), function(i) { return(list(mean(mastermap[tp,i]), sd(mastermap[tp,i]))) })),nrow=2)
 makeLimit(lala)
@@ -73,11 +79,9 @@ last=1
 cur=dimension^2
 library(plot3D)
 nom=params[2:length(params)]
-kekeke=cbind(mastermap, array(serr))
 par(mfrow=c(1,1))
 colorz=rainbow(dimension)
 
-write.csv(kekeke,paste(simdir,"errormap.csv",sep=""))
 for(ff in 1:ncol(serr)) {
   axes=axis_map[ff,]
   targ=kekeke[last:cur,]
