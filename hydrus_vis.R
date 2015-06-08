@@ -6,6 +6,7 @@ dimension=11
 simdir="C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_Durner1\\"
 nsim=15
 kekeke=read.csv(paste(simdir,"errormap.csv",sep=""))
+sest=read.csv(paste(simdir,"estimap.csv",sep=""))
 mastermap=kekeke[,1:(length(names(kekeke))-1)]
 serr=kekeke[,length(names(kekeke))]
 tp=which(serr<(1000)) #take top percentile of model runs
