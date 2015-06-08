@@ -10,7 +10,7 @@ Welcome to HYDRUS-1D
       %MODELID%       0
     thr     ths    Alfa      n         Ks       l     w2    Alfa2      n2
   %THETAR%    %THETAS%    %ALPHA1%     %N1%        %KSAT%     %L%     %W2%   %ALPHA2%        %N2% 
-      0       0       0       0          1       0       0       0          0 
+      0       0       0       0          0       0       0       0          0 
       0       0       0       0          0       0       0       0          0 
       0       0       0       0          0       0       1       0          0 
       HO(N)         FOS   ITYPE(N) POS     WTS

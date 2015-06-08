@@ -2,22 +2,22 @@
 source("ct_methods.R")
 
 template_set="vGM"
-simdir="C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_vGM1\\"
-
+simdir=paste("C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_",template_set,"2\\",sep="")
+iteration=2
 
 selector_fname=paste(".\\Templates\\",template_set,"\\SELECTOR_TEMPLATE.IN",sep="")
 fit_fname=paste(".\\Templates\\",template_set,"\\FIT_TEMPLATE.IN",sep="")
 atmo_fname=paste(".\\Templates\\",template_set,"\\ATMOSPH_TEMPLATE.IN",sep="")
 prof_fname=paste(".\\Templates\\",template_set,"\\PROFILE_TEMPLATE.DAT",sep="")
 H1D_fname=paste(".\\Templates\\",template_set,"\\HYDRUS1D_TEMPLATE.DAT",sep="")
-LIMITS_fname=paste(".\\Templates\\",template_set,"\\LIMITS.IN",sep="")
+LIMITS_fname=paste(".\\Templates\\",template_set,"\\LIMITS",iteration,".IN",sep="")
 selector_template=readChar(selector_fname,file.info(selector_fname)$size)
 fit_template=readChar(fit_fname,file.info(fit_fname)$size)
 atmo_template=readChar(atmo_fname,file.info(atmo_fname)$size)
 prof_template=readChar(prof_fname,file.info(prof_fname)$size)
 h1d_template=readChar(H1D_fname,file.info(H1D_fname)$size)
 
-disc=10 #'disc' defines the discretization within the specified min and maximum
+disc=25 #'disc' defines the discretization within the specified min and maximum
 
 # limits=list(modelid=c(5,5),
 #          thetar=c(0,0),
