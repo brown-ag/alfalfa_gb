@@ -5,7 +5,7 @@ params_MIM=c("modelid","thetar","thetas","alpha","n","ksat","l","thrim","thsim",
 params_DUR=c("MODELID","THETAR","THETAS","ALPHA1","ALPHA2","N1","N2","KSAT","L","W2","PULSE")
 params=params_DUR
 
-dimension=11
+dimension=25
 simdir="C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_vGM1\\"
 
 nsim=15
