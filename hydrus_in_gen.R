@@ -4,6 +4,7 @@ source("ct_methods.R")
 template_set="MIM"
 simdir="C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_MIM1\\"
 
+
 selector_fname=paste(".\\Templates\\",template_set,"\\SELECTOR_TEMPLATE.IN",sep="")
 fit_fname=paste(".\\Templates\\",template_set,"\\FIT_TEMPLATE.IN",sep="")
 atmo_fname=paste(".\\Templates\\",template_set,"\\ATMOSPH_TEMPLATE.IN",sep="")
