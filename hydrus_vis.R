@@ -3,7 +3,7 @@ library(plot3D)
 library(rgl)
 source("ct_methods.R")
 dimension=11
-simdir="C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_Durner1\\"
+simdir="C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_MIM1\\"
 nsim=15
 kekeke=read.csv(paste(simdir,"errormap.csv",sep=""))
 sest=read.csv(paste(simdir,"estimap.csv",sep=""))
