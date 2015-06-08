@@ -10,7 +10,7 @@ simdir="C:\\Users\\agbrown\\workspace\\alfalfa_gb\\Simulations_Durner1\\"
 
 library(plot3D)
 
-nsim=21
+nsim=15
 serr=c()
 sest=list()
 mastermap=c()
