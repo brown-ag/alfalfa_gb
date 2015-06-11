@@ -34,7 +34,7 @@ for(s in 1:nsim) {
   
   for(i in 1:(dimension^2)) {
     #node=tryCatch(readNodeFile(i,s,simdir),error=function(e) { return(cbind(1:length(fit[,1]),rep(1000,10000))) })
-    node=readFitOutFile(i,s,simdir,fp)
+    node=tryCatch(readFitOutFile(i,s,simdir,fp),error=function(e) { return(cbind(1:length(fit[,1]),rep(1000,fp))) })
 	#fp=array(getFitPoints(node[,1],fit[1:length(fit[,1]),1]))
     #test1=((max(fp[which(fp<=length(est[,i]))]))==length(est[,i])) #makes sure the dimensions of the matrices line up by trimming fitpoints
 	test1=TRUE
