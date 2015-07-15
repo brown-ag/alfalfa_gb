@@ -5,7 +5,7 @@ data=dat.read()
 lines=data.split("\n")
 wvars={}
 i=0
-for l in lines[2:len(lines)]:
+for l in lines[1:len(lines)-1]:
 	chunks=l.split(",")
 	#for c in chunks:
 	if len(chunks) > 1:
@@ -23,14 +23,14 @@ print wvars
 
 columns=wvars.keys()
 rows=[]
-header=['plot']
+header=['id']
 for c in columns:
         header.append(c)
 rows.append(header)
-nlines=lines[2:len(lines)]
-for j in range(1,len(nlines)):
+nlines=lines[0:len(lines)-1]
+for j in range(0,len(nlines)-1):
         row=[]
-        row.append(j)
+        row.append(j+1)
         for w in wvars:
                 fudge=-1
                 for k in wvars[w]:

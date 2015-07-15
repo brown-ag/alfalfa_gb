@@ -1,8 +1,9 @@
 #install.packages("stringr",repos="http://cran.us.r-project.org")
 library(stringr)
 foo = read.csv("27-05-15_SV_bio.csv", stringsAsFactor=FALSE)
+bar = read.csv("27-05-15_weedsout.csv", stringsAsFactor=FALSE)
 head(foo)
-
+foo=(cbind(foo,bar))
 #Alfalfa biomass, using plant count and % cover as covariate
 a=(lm(log10(foo$AlfBag)~foo$Treat+foo$Plant.C+foo$X.Cover))
 summary(a)
@@ -58,6 +59,12 @@ df=data.frame(names(specieslist))
 #warnings()
 #MANOVA
 mv1 <- manova(cbind(foo$AlfBag,foo$WeedBag) ~ foo$Treat+foo$Plant.C+foo$X.Cover, data=foo)
+mv2 <- manova(cbind(foo$AlfBag,foo$WeedBag) ~ foo$dl+foo$ma+foo$gr+foo$hs+foo$ca+foo$mu+foo$lq+foo$hb+foo$pw+foo$cw+foo$pl+foo$lc)
+lm21 <- lm(foo$AlfBag~foo$dl+foo$ma+foo$gr+foo$hs+foo$ca+foo$mu+foo$lq+foo$hb+foo$pw+foo$cw+foo$pl+foo$lc)
+lm22 <- lm(foo$WeedBag~foo$dl+foo$ma+foo$gr+foo$hs+foo$ca+foo$mu+foo$lq+foo$hb+foo$pw+foo$cw+foo$pl+foo$lc)
+mv3 <- manova(cbind(foo$dl,foo$ma,foo$gr,foo$hs,foo$ca,foo$mu,foo$lq,foo$hb,foo$pw,foo$cw,foo$pl,foo$lc)~foo$Treat+foo$WeedBag+foo$AlfBag+foo$Plant.C)
+
+
 #summary(mv1,test="W")
 #summary(mv1,test="H")
 #summary(mv1,test="P")
