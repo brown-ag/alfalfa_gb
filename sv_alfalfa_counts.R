@@ -35,6 +35,7 @@ weed_r=lapply(1:length(weeds),FUN=yy)
 #print(length(weed_r))
 matout=c()
 specieslist=c()
+countlist=c()
 print(weed_r)
 for(i in 1:length(weed_r))  {
 	w=matrix(weed_r[i][[1]])
@@ -59,12 +60,54 @@ df=data.frame(names(specieslist))
 #warnings()
 #MANOVA
 mv1 <- manova(cbind(foo$AlfBag,foo$WeedBag) ~ foo$Treat+foo$Plant.C+foo$X.Cover, data=foo)
-mv2 <- manova(cbind(foo$AlfBag,foo$WeedBag) ~ foo$dl+foo$ma+foo$gr+foo$hs+foo$ca+foo$mu+foo$lq+foo$hb+foo$pw+foo$cw+foo$pl+foo$lc)
+mv2 <- manova(cbind(foo$AlfBag,foo$WeedBag) ~ foo$Treat+foo$Plant.C+foo$X.Cover+foo$dl+foo$ma+foo$gr+foo$hs+foo$ca+foo$mu+foo$lq+foo$hb+foo$pw+foo$cw+foo$pl+foo$lc)
 lm21 <- lm(foo$AlfBag~foo$dl+foo$ma+foo$gr+foo$hs+foo$ca+foo$mu+foo$lq+foo$hb+foo$pw+foo$cw+foo$pl+foo$lc)
 lm22 <- lm(foo$WeedBag~foo$dl+foo$ma+foo$gr+foo$hs+foo$ca+foo$mu+foo$lq+foo$hb+foo$pw+foo$cw+foo$pl+foo$lc)
 mv3 <- manova(cbind(foo$dl,foo$ma,foo$gr,foo$hs,foo$ca,foo$mu,foo$lq,foo$hb,foo$pw,foo$cw,foo$pl,foo$lc)~foo$Treat+foo$WeedBag+foo$AlfBag+foo$Plant.C)
 
 
-#summary(mv1,test="W")
-#summary(mv1,test="H")
-#summary(mv1,test="P")
+
+#PCA
+
+cols=cbind(foo$Plant.C,foo$X.Cover,foo$AlfBag,foo$WeedBag,foo$dl, foo$ma,foo$gr,foo$hs,foo$ca,foo$mu,foo$lq,foo$hb,foo$pw,foo$cw,foo$pl,foo$lc)
+pcweeds=data.frame(cols)
+names(pcweeds)=c("plantcount","xcover","alfbag","weedbag","dl","ma","gr","hs","ca","mu","lq","hb","pw","cw","pl","lc")
+library(mvnormtest)
+mat=na.omit(t(pcweeds))
+mshapiro.test(mat)
+#install.packages(c("corrplot","psych", "caret"))
+library(psych)
+library(corrplot)
+library(caret)
+round(cor(pcweeds),2) # correlation matrix
+pairs.panels(pcweeds, lm=TRUE, rug=FALSE, method="pearson")
+correlations<-cor(pcweeds)
+corrplot(correlations,type = "upper")
+findCorrelation(correlations, cutof=.6) 
+
+
+sp.pca<-princomp(~pcweeds$plantcount+pcweeds$xcover+pcweeds$dl+pcweeds$ma+pcweeds$gr+pcweeds$hs+pcweeds$ca+pcweeds$mu+pcweeds$lq+pcweeds$hb+pcweeds$pw+pcweeds$cw+pcweeds$pl+pcweeds$lc, data=pcweeds, cor=TRUE, scores=TRUE)
+sp.pca$scores # view all PC scores
+
+cormat<-cor(cbind(sp.pca$scores,pcweeds)) #view the loadings used to make the biplot
+cormat
+
+summary(sp.pca)
+plot(sp.pca,type="lines")
+biplot(sp.pca)
+library(rgl)
+foo$colz[foo$Treat=="C"]="red"
+foo$colz[foo$Treat=="L"]="orange"
+foo$colz[foo$Treat=="M"]="yellow"
+foo$colz[foo$Treat=="H"]="blue"
+plot3d(sp.pca$scores[,1:3],col=foo$colz)
+text3d(sp.pca$scores[,1:3],texts=rownames(pcweeds))
+text3d(sp.pca$loadings[,1:3]*5.1,texts=rowames(sp.pca$loadings), col="red")
+coords <- NULL
+for (i in 1:nrow(sp.pca$loadings)) {
+  coords <- rbind(coords, rbind(c(0,0,0),sp.pca$loadings[i,1:3]))
+}
+lines3d(coords*5, col="red", lwd=4)
+
+summary(lm(foo$AlfBag~sp.pca$scores[,1:3]))
+summary(lm(sp.pca$scores[,3]~foo$Treat))
