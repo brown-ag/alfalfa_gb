@@ -25,7 +25,7 @@ treat=factor(foo$treat)
 plot(foo$bio~foo$finalS)
 spp=foo$finalS/foo$finalP
 bio=foo$bio
-a= lm(log10(bio)~foo$treat+block)
+a=aov(log10(bio)~foo$treat+block)
 anova(a)
 plot(a)
 plot(TukeyHSD(a,conf.level=0.95))
@@ -51,13 +51,11 @@ contrasts=matrix(c(c(3,-1,0,-1,0,-1,0),c(3,0,-1,0,-1,0,-1),c(2,-1,-1,0,0,0,0),c(
 comparison=glht(m2,linfct=contrasts[,1])
 lmmpower(m2,pct.change=0.1,t=1:21,power=0.8)
 
-  robmlm(
 
 
 library(pwr)
 model1=lm(log10(foo$bio)~foo$treat+block)
-model1
-pwr.f2.test(8,54,0.2662/(1-0.2662))
+pwr.f2.test(8,54,)
 
 
 m1=lm(spp~time*water+block,data=foo)

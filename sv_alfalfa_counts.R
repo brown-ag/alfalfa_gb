@@ -64,6 +64,8 @@ mv2 <- manova(cbind(foo$AlfBag,foo$WeedBag) ~ foo$Treat+foo$Plant.C+foo$X.Cover+
 lm21 <- lm(foo$AlfBag~foo$dl+foo$ma+foo$gr+foo$hs+foo$ca+foo$mu+foo$lq+foo$hb+foo$pw+foo$cw+foo$pl+foo$lc)
 lm22 <- lm(foo$WeedBag~foo$dl+foo$ma+foo$gr+foo$hs+foo$ca+foo$mu+foo$lq+foo$hb+foo$pw+foo$cw+foo$pl+foo$lc)
 mv3 <- manova(cbind(foo$dl,foo$ma,foo$gr,foo$hs,foo$ca,foo$mu,foo$lq,foo$hb,foo$pw,foo$cw,foo$pl,foo$lc)~foo$Treat+foo$WeedBag+foo$AlfBag+foo$Plant.C)
+mv4=manova(cbind(foo$dl,foo$ma,foo$gr,foo$hs,foo$ca,foo$mu,foo$lq,foo$hb,foo$pw,foo$cw,foo$pl,foo$lc)~foo$Treat)
+
 
 
 
@@ -84,6 +86,8 @@ pairs.panels(pcweeds, lm=TRUE, rug=FALSE, method="pearson")
 correlations<-cor(pcweeds)
 corrplot(correlations,type = "upper")
 findCorrelation(correlations, cutof=.6) 
+
+summary(manova(cols~foo$Treat))
 
 
 sp.pca<-princomp(~pcweeds$plantcount+pcweeds$xcover+pcweeds$dl+pcweeds$ma+pcweeds$gr+pcweeds$hs+pcweeds$ca+pcweeds$mu+pcweeds$lq+pcweeds$hb+pcweeds$pw+pcweeds$cw+pcweeds$pl+pcweeds$lc, data=pcweeds, cor=TRUE, scores=TRUE)
@@ -107,7 +111,8 @@ coords <- NULL
 for (i in 1:nrow(sp.pca$loadings)) {
   coords <- rbind(coords, rbind(c(0,0,0),sp.pca$loadings[i,1:3]))
 }
-lines3d(coords*5, col="red", lwd=4)
+lines3d(coords*5, col="red", lwd=2)
 
 summary(lm(foo$AlfBag~sp.pca$scores[,1:3]))
 summary(lm(sp.pca$scores[,3]~foo$Treat))
+

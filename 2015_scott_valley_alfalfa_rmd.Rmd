@@ -1,0 +1,53 @@
+---
+title: "2015 Scott Valley Alfalfa Summary"
+author: "Andrew Brown"
+date: "September 9, 2015"
+output: pdf_document
+---
+
+```{r,message=FALSE,echo=FALSE}
+
+library(plyr)
+library(reshape2)
+sv_bio1=read.csv("27-05-15_SV_justbio.csv", stringsAsFactors=FALSE)
+sv_bio2=read.csv("15-7-15_SV_bio_Rinput.csv",stringsAsFactors=FALSE)
+sv_bio1$bio=sv_bio1$bio*2
+sv_bio2$bio=sv_bio2$bio*2
+```
+\section{AOV - Cutting 1}
+```{r,echo=FALSE}
+with(sv_bio1, tapply(bio,treat,shapiro.test))
+bartlett.test(sv_bio1$bio~sv_bio1$treat)
+cut1=(aov(sv_bio1$bio~sv_bio1$treat))
+summary(cut1)
+TukeyHSD(cut1)
+```
+\section{AOV - Cutting 2}
+```{r,echo=FALSE}
+with(sv_bio2, tapply(bio,treat,shapiro.test))
+bartlett.test(sv_bio2$bio~sv_bio2$treat)
+cut2=(aov(sv_bio2$bio~sv_bio2$treat))
+summary(cut2)
+TukeyHSD(cut2)
+```
+
+```{r}
+melt1=melt(sv_bio1, id.vars=c("treat"))
+melt2=melt(sv_bio2, id.vars=c("treat"))
+means1.sem <- ddply(melt1, c("treat","variable"), summarise, mean=mean(value), 
+                    sdv=sd(value), sem=sd(value)/sqrt(length(value)))
+means2.sem <- ddply(melt2, c("treat","variable"), summarise, mean=mean(value), 
+                    sdv=sd(value), sem=sd(value)/sqrt(length(value)))
+means1.sem <- transform(means1.sem, lower=mean-sem, upper=mean+sem,
+                        tacre=mean*0.00404685642,coefvar=sdv/mean*100)
+means2.sem <- transform(means2.sem, lower=mean-sem, upper=mean+sem,
+                        tacre=mean*0.00404685642, coefvar=sdv/mean*100)
+```
+\section{Stats - Cutting 1}
+```{r,echo=FALSE}
+subset(means1.sem, select=-c(variable))
+```
+\section{Stats - Cutting 2}
+```{r,echo=FALSE}
+subset(means2.sem, select=-c(variable))
+```

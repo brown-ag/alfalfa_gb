@@ -5,7 +5,7 @@ library(scales)
 library(data.table)
 #SETTINGS
 foo=read.csv("C:/Campbellsci/PC200W/CR1000-AB2_Table1.csv") #path to comma-separated data file (one line header)
-events=read.csv("../alfalfa_gb_git//ct_alfalfa_events.csv")
+events=read.csv("ct_alfalfa_events.csv")
 bar=read.csv("C:/Campbellsci/PC200W/CR1000-AB2_Table2.csv")
 PT_id = 2:21  # Range for columns containing pressure transducer data (20 transducers)
 T_id = 43:51  # Range for columns containing temperature data (9 thermistors)

@@ -11,14 +11,15 @@ rsq <- function(dep, ind, blk, ninds, data, indices) {
   fitter<<-cbind(fitter,fit$coef)
   #fit <<- lm(dep[indices[1:ninds]]~ind[indices[1:ninds]], data=d)
   #return(summary(fit)$r.square)
-  r2=(summary(fit)$r.square)
+  #r2=(mean(dep[ind!='C'])-mean(dep[ind=='C']))/sd(dep[ind=='C'])
+  #(summary(fit)$r.square)
   return(r2)
   #return(pwr.f2.test(8,54,r2/(1-r2))$power)
   #return(pwr.f2.test(6,56,r2/(1-r2))$power)  
 } 
 # bootstrapping with 1000 replications 
 #results <- boot(data=foo, statistic=rsq,R=1000, dep=foo$bio, ind=foo$treat, blk=foo$block, ninds=63)
-results <- boot(data=foo, statistic=rsq,R=10000, dep=foo$bio, ind=foo$treat, blk=foo$block, ninds=1000)
+results <- boot(data=foo, statistic=rsq,R=1000, dep=foo$bio, ind=foo$treat, blk=foo$block,ninds=63)
 # view results
 results 
 plot(results)
