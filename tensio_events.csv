@@ -1,6 +1,6 @@
 plot,time,treat,s1,s2,d1,d2,eventstart,eventend
-1,March,High,1,2,3,4,11,16
+1,March,High,1,2,3,4,12,17
 2,February,High,5,6,7,8,5,10
-3,March,Low,9,10,11,12,11,14
+3,March,Low,9,10,11,12,12,15
 4,February,Low,13,14,15,16,5,8
-5,Control,Control,17,18,19,20,5,16
+5,Control,Control,17,18,19,20,5,17

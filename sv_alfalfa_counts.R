@@ -67,7 +67,7 @@ mv3 <- manova(cbind(foo$dl,foo$ma,foo$gr,foo$hs,foo$ca,foo$mu,foo$lq,foo$hb,foo$
 mv4=manova(cbind(foo$dl,foo$ma,foo$gr,foo$hs,foo$ca,foo$mu,foo$lq,foo$hb,foo$pw,foo$cw,foo$pl,foo$lc)~foo$Treat)
 
 
-
+corr(foo$AlfBag,foo[,])
 
 #PCA
 

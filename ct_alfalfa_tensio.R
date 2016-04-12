@@ -6,7 +6,7 @@ library(data.table)
 #SETTINGS
 foo=read.csv("C:/Campbellsci/PC200W/CR1000-AB2_Table1.csv") #path to comma-separated data file (one line header)
 events=read.csv("ct_alfalfa_events.csv")
-bar=read.csv("C:/Campbellsci/PC200W/CR1000-AB2_Table2.csv")
+#bar=read.csv("C:/Campbellsci/PC200W/CR1000-AB2_Table2.csv")
 PT_id = 2:21  # Range for columns containing pressure transducer data (20 transducers)
 T_id = 43:51  # Range for columns containing temperature data (9 thermistors)
 major_x = "1 week" #Increment between labeled gridlines
@@ -15,7 +15,6 @@ origin_time="02/16/2015 10:00"
 #origin_time="03/07/2015 15:00" #Time zero for data frames & graphs
 
 #Check Battery
-
 battime=(((seq(0,length(bar[,1])))/24))
 df=data.frame(cbind(as.numeric(bar[100:1400,3])-mean(bar[100:1400,3]),battime[100:1400]))
 batfit=lm(df[,1]~df[,2],data=df)
@@ -26,11 +25,12 @@ abline(batfit)
 TIMESTAMP = as.POSIXct(strptime(foo[,1],"%m/%d/%Y %H:%M"))
 event_start = as.POSIXct(strptime(events[,4],"%m/%d/%Y %H:%M"))
 event_end = as.POSIXct(strptime(events[,5],"%m/%d/%Y %H:%M"))
-time_test=ts(TIMESTAMP,frequency=length(TIMESTAMP))
-origin=as.POSIXct(strptime(origin_time,"%m/%d/%Y %H:%M")) #initial time for series
-tindex=seq(1,length(TIMESTAMP))*15
-hour=as.numeric(substr(TIMESTAMP,12,13))#
-keep=((as.numeric(TIMESTAMP)-as.numeric(origin) > 0))
+time_test = ts(TIMESTAMP,frequency=length(TIMESTAMP))
+origin = as.POSIXct(strptime(origin_time,"%m/%d/%Y %H:%M")) #initial time for series
+tindex = seq(1,length(TIMESTAMP))*15
+hour = as.numeric(substr(TIMESTAMP,12,13))
+keep = ((as.numeric(TIMESTAMP)-as.numeric(origin) > 0))
+
 #keep=((hour >= 18) | (hour <= 6))
 #keep = (substr(TIMESTAMP, 12, 16)=="6:00")
 n=0:23
@@ -41,7 +41,6 @@ head(data[day[,1]==4,])
 TIMESTAMPa=TIMESTAMP[keep]
 TIMESTAMPn=seq(0,length(TIMESTAMPa))*15
 TIMESERIES=ts(TIMESTAMPa,frequency=(length(TIMESTAMPa)*15/(24*60)))
-dtest=aggregate(data[,3],list(sixhr=cycle(TIMESERIES)),mean)
 
 #Remove convert to mBar, remove NaN values and values prior to specified origin
 foo2=foo
@@ -116,7 +115,7 @@ mo <- as.numeric(strftime(TIMESTAMP, "%m"))
 dy <- as.numeric(strftime(TIMESTAMP, "%d"))
 hr <- as.numeric(strftime(TIMESTAMP, "%H"))
 which((hr %% 2) == 0)
-d3=aggregate(data[,3]~mo+dy+hr,FUN=mean)
+d3=aggregate(data[,3]~mo+dy+hr,Fmean)
 s3=aggregate(data[,3]~mo+dy+hr,FUN=sd)
 t3=aggregate(TIMESTAMP~mo+dy+hr,FUN=median)
 #d3=cbind(sort(t3[,4]),d3[,4])
@@ -242,7 +241,7 @@ T_pos=factor(c(1,1,1,2,2,2,3,3,3))
 levels(T_idl)=c("25cm", "5cm", "15cm")
 levels(T_pos)=c("Control","Low","High")
 T_map=na.omit(data.frame(ID=T_id, depth=T_idl, plot=T_pos))
-df_T=data.frame(rbindlist(list(cbind("5cm",TIMESTAMPa,data[,T_map[T_map$depth=="5cm",1]]),cbind("15cm",TIMESTAMPa,data[,T_map[T_map$depth=="15cm",1]]),cbind("25cm",TIMESTAMPa,data[,T_map[T_map$depth=="25cm",1]]))))
+df_T=data.frame(rbind(list(list(cbind("5cm",TIMESTAMPa,data[,T_map[T_map$depth=="5cm",1]]),cbind("15cm",TIMESTAMPa,data[,T_map[T_map$depth=="15cm",1]]),cbind("25cm",TIMESTAMPa,data[,T_map[T_map$depth=="25cm",1]])))))
 
 #Plot Temperature Data
 for(i in 3:5) {
