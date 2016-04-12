@@ -36,6 +36,6 @@ lmp(m0)
 dolmp=function(data,indices) {
   return(lmp(lm(data$bio[indices]~data$twater[indices])))
 }
-res3=boot(data=svdf[which(svdf$cut==2),],statistic=dolmp,R=10000)
+res3=boot(data=svdf[which(svdf$cut==1),],statistic=dolmp,R=10000)
 res3
 sum(res3$t<0.05)/length(res3$t) #calculates power

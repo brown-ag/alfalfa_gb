@@ -83,3 +83,31 @@ plot(as.numeric(tmap[cut2$treat]),cut2$bio)
 locbio=aggregate(foob2$bio*2,by=list(foob2$treat),FUN=sum)
 countz=aggregate(foob2$bio,by=list(foob2$treat),FUN=length)
 plot(locbio[,1],locbio[,2]/countz[,2])
+
+
+#LIKELIHOOD TEST
+m0=lm(foob2$bio[which(foob2$cut==1)]~1)
+m1=lm(foob2$bio[which(foob2$cut==1)]~twater[which(foob2$cut==1)])
+anova(m0,m1)
+
+m0=lm(foob2$bio[which(foob2$cut==2)]~1)
+m1=lm(foob2$bio[which(foob2$cut==2)]~twater[which(foob2$cut==2)])
+anova(m0,m1)
+
+#piecewise
+breaks <- twater[which(twater >= 9)]
+mse <- numeric(length(breaks))
+for(i in 1:length(breaks)){
+  piecewise1 <- lm(data=foob2,bio ~ twater*(twater < breaks[i]) + twater*(twater>=breaks[i]))
+  mse[i] <- summary(piecewise1)[6]
+}
+mse <- as.numeric(mse)
+brea=breaks[which(mse==min(mse))[[1]]]
+foob3=foob2[which(foob2$cut==2),]
+foob3=cbind(foob3,twater=as.numeric(tmap[as.character(foob3$treat)]))
+piecewise2 <- lm(data=foob3,bio ~ twater*(twater < 10) + twater*(twater > 10))
+summary(piecewise2)
+#segmented
+library(segmented)
+lf1=lm(data=foob3,bio~twater)
+segmented.lm(lf1,seg.Z=~twater)
