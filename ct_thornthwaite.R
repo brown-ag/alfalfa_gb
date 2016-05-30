@@ -19,14 +19,15 @@ ctract=rbind(ctract14[start:nrow(ctract14),],ctract15[1:start,])
 
 ct_budget_all=data.frame(year=numeric(),day=numeric(), et=numeric(), stor=numeric(), rech=numeric(), irri=numeric())
 for(i in 1:7) {
+  #i=3
   #clear irrigation data buffer and then populate with treatment info
   irrig=rep(0,366) #create buffer for irrigation quantities
   irrig[(365-start)+idayz] = events[,i+1] #insert irrigation into buffer
   
-  cptract=ctract #copy ctract control data into buffer
+  cptract=ctract #copy sv control data into buffer
   cptract$rain=cptract$rain+irrig #add irrigation to rain
   
-  ct_exc=cptract$rain > cptract$eto #ET = PET when rainfall exceeds et
+  ct_exc=cptract$rain > cptract$et #ET = PET when rainfall exceeds et
   
   soilmax=5*30.48*10*0.25 #water content at field capacity is 0.25cm/cm, in a 5ft (1500mm) rootzone
   soilc=numeric()
@@ -34,28 +35,40 @@ for(i in 1:7) {
   deep=numeric()
   eterm=numeric()
   eterm=c(eterm,1)
-  eta=c(eta,cptract$eto[1])
+  eta=c(eta,cptract$et[1])
   soilc=c(soilc,0.5*soilmax) #starting in october with half of field capacity
   deep=c(deep,0)
   for(m in 2:length(ct_exc)) {
-    eterm=c(eterm,exp(-(cptract$eto[m]-cptract$rain[m])/soilmax))
-    soilc=c(soilc,soilc[m-1]*eterm[m])
-    if(soilc[m] > soilmax) {
-      deep=c(deep,soilc[m]-soilmax)
-      soilc[m]=soilmax
-    } else {
-      deep=c(deep,0)
+    delP=cptract$rain[m]-cptract$et[m]
+    eterm=c(eterm,exp(delP/soilmax))
+    if(delP > 0) { # soil is wetting
+      soilc=c(soilc,soilc[m-1]+delP) #add water to soil water storage
+      if(soilc[m] > soilmax) { #above field capacity
+        deep=c(deep,soilc[m]-soilmax) #remove excess from soil water storage
+        soilc[m]=soilmax              #soil water storage equals field capacity
+      } else { #below field capacity
+        deep=c(deep,0)                #water goes to replenishing soil water. zero recharge
+      }      
+    } else { #soil is drying
+      soilc=c(soilc,soilc[m-1]*eterm[m])
+      if(soilc[m] > soilmax) {
+        deep=c(deep,soilc[m]-soilmax)
+        soilc[m]=soilmax
+      } else {
+        deep=c(deep,0)
+      }
     }
     deltaS=soilc[m]-soilc[m-1]
     if(ct_exc[m]) {
-      eta=c(eta,cptract$eto[m])
+      eta=c(eta,cptract$et[m]) #actual et
     } else {
-      eta=c(eta,cptract$eto[m]-deltaS)
+      eta=c(eta,cptract$et[m]-deltaS)
     }
   }
-  ct_budget=data.frame(exp=i,year=ctract$year,day=ctract$doy,et=eta,stor=soilc,rech=deep,irri=cptract$rain)
+  ct_budget=data.frame(exp=rep(i,366),year=ctract$year,day=ctract$doy,et=eta,stor=soilc,rech=deep,irri=cptract$rain)
   ct_budget_all=rbind(ct_budget_all,ct_budget)
 }
+
 
 #soil storage plot by treatment
 control=ct_budget_all[which(ct_budget_all$exp==7),]

@@ -23,6 +23,7 @@ ctract=rbind(ctract14[start:nrow(ctract14),],ctract15[1:start,])
 
 ct_budget_all=data.frame(year=numeric(),day=numeric(), et=numeric(), stor=numeric(), rech=numeric(), irri=numeric())
 for(i in 1:11) {
+  #i=3
   #clear irrigation data buffer and then populate with treatment info
   irrig=rep(0,366) #create buffer for irrigation quantities
   irrig[(365-start)+idayz] = events[,i+1] #insert irrigation into buffer
@@ -42,17 +43,28 @@ for(i in 1:11) {
   soilc=c(soilc,0.5*soilmax) #starting in october with half of field capacity
   deep=c(deep,0)
   for(m in 2:length(ct_exc)) {
-    eterm=c(eterm,exp(-(cptract$et[m]-cptract$rain[m])/soilmax))
-    soilc=c(soilc,soilc[m-1]*eterm[m])
-    if(soilc[m] > soilmax) {
-      deep=c(deep,soilc[m]-soilmax)
-      soilc[m]=soilmax
-    } else {
-      deep=c(deep,0)
+    delP=cptract$rain[m]-cptract$et[m]
+    eterm=c(eterm,exp(delP/soilmax))
+    if(delP > 0) { # soil is wetting
+      soilc=c(soilc,soilc[m-1]+delP) #add water to soil water storage
+      if(soilc[m] > soilmax) { #above field capacity
+        deep=c(deep,soilc[m]-soilmax) #remove excess from soil water storage
+        soilc[m]=soilmax              #soil water storage equals field capacity
+      } else { #below field capacity
+        deep=c(deep,0)                #water goes to replenishing soil water. zero recharge
+      }      
+    } else { #soil is drying
+      soilc=c(soilc,soilc[m-1]*eterm[m])
+      if(soilc[m] > soilmax) {
+        deep=c(deep,soilc[m]-soilmax)
+        soilc[m]=soilmax
+      } else {
+        deep=c(deep,0)
+      }
     }
     deltaS=soilc[m]-soilc[m-1]
     if(ct_exc[m]) {
-      eta=c(eta,cptract$et[m])
+      eta=c(eta,cptract$et[m]) #actual et
     } else {
       eta=c(eta,cptract$et[m]-deltaS)
     }
@@ -73,10 +85,10 @@ lines(high1$stor/soilmax,type="l",lty=1,col="blue")
 lines(low1$stor/soilmax,type="l",lty=1,col="green")
 
 
-plot(cumsum(control1$rech)/1000,type="l",lty=1,ylim=c(0,150))
-lines(cumsum(continued1$rech)/1000,type="l",lty=1,col="red")
-lines(cumsum(high1$rech)/1000,type="l",lty=1,col="blue")
-lines(cumsum(low1$rech)/1000,type="l",lty=1,col="green")
+plot(cumsum(control1$rech)/1000/0.3048,type="l",lty=1,ylim=c(0,30))
+lines(cumsum(continued1$rech)/1000/0.3048,type="l",lty=1,col="red")
+lines(cumsum(high1$rech)/1000/0.3048,type="l",lty=1,col="blue")
+lines(cumsum(low1$rech)/1000/0.3048,type="l",lty=1,col="green")
 
 
 rechfrac=data.frame(day=1:366,control=0,continued=0,high=0,low=0)
