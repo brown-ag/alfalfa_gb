@@ -31,3 +31,5 @@ axis(1)
 axis(2, las=1)
 
 sum(y15$eto)
+
+sum(y15$rain[day_of_year<80])

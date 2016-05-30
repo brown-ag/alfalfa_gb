@@ -119,15 +119,15 @@ ggplotColours <- function(n=6, h=c(0, 360) +15){
 numobs=data.frame(n=c(8,8,8,8))
 cbar=ggplot(means1.sem,aes(ntreat,bio,fill=factor(cut)))+
   geom_bar(stat="identity",position="dodge",width=0.5)+
-  geom_errorbar(aes(ymax=upper,ymin=lower),position=position_dodge(0.5),width=0.2,data=means1.sem)+
-  scale_fill_manual(name="Cutting",breaks=c(1, 2),labels=c("1st", "2nd"),values=c("#339999","#336666"))+
+  geom_errorbar(aes(ymax=upper,ymin=lower),position=position_dodge(0.5),width=0.2,data=means1.sem,size=1)+
+  scale_fill_manual(name="Cutting",breaks=c(1, 2),labels=c("1st", "2nd"),values=c("#888888","#006666"))+
   #scale_x_discrete(breaks=c(0,6,10,28))+
   scale_y_continuous(expand=c(0,0.01))+
   #geom_smooth(data=subset(svbio,(cut==1)), method = "lm", aes(x=ntreat,y=bio),fill="grey50",color="#F8766D")+
   #geom_smooth(data=subset(svbio,(cut==2)), method = "lm", aes(x=ntreat,y=bio),fill="grey50",color="#00BFC4")+
   #geom_text(inherit.aes=FALSE,x = 20, y = 2.0, label = paste("\"Cut 1:\" ~ ",lm_eqn(lm_1c)), parse = TRUE,size=5)+
   #geom_text(inherit.aes=FALSE,x = 20, y = 1.9, label = paste("\"Cut 2:\" ~ ",lm_eqn(lm_2c)), parse = TRUE,size=5)+
-  geom_text(inherit.aes=FALSE,data=numobs,aes(x=c("Control","Low","High","Continued"),y=.25,label=paste("n=",n,sep="")),fontface="bold",size=10)+
+  #geom_text(inherit.aes=FALSE,data=numobs,aes(x=c("Control","Low","High","Continued"),y=.25,label=paste("n=",n,sep="")),fontface="bold",size=10)+
   #geom_text(inherit.aes=FALSE,data=out3$groups, aes(x=xloc+xcut,y=0.5,label=as.character(M)),fontface="bold")+
   #geom_text(inherit.aes=FALSE,data=out2$groups,aes(x=as.numeric(as.character(trt))+0.65,y=0.5,label=as.character(M)),fontface="bold")+
   #geom_text(inherit.aes=FALSE,data=out2$groups,aes(x=as.numeric(as.character(trt))+0.65,y=0.5,label=as.character(M)),fontface="bold")+
@@ -296,25 +296,29 @@ Soil near-surface NO3-N concentrations from before treatments (September 2014) i
 
 ```{r,message=FALSE,echo=FALSE}
   #CT - 1 cutting
+dumb=function(x) { x[1] }
 ct_bio=read.csv("310315_plant-counts.csv",stringsAsFactors=FALSE)
-ct_bio$bio=ct_bio$bio*2*0.0040468564 #biomass per square meter conversion -> tons/acre
-ct_bio$finalP=ct_bio$finalP*2 #finalP expressed on sq m basis
-ct_bio$treat=factor(ct_bio$treat,levels=c('C','JL','JH','FL','FH','ML','MH'),labels=c("Control","January; 4ft","January; 6ft","February; 4ft","February; 6ft","March; 4ft","March; 6ft"))
+ct_bio2=aggregate(ct_bio[,7:10],by=list(ct_bio$plot),FUN=sum)
+ct_bio2$finalP=ct_bio2$finalP*2 #finalP expressed on sq m basis
+ct_bio3=aggregate(ct_bio[,1:6],by=list(ct_bio$plot),FUN=dumb)
+ct_bio=cbind(ct_bio3,ct_bio2)
+ct_bio$bio=ct_bio$bio*2/3*0.0040468564 #biomass per square meter conversion -> tons/acre
+ct_bio$treat=factor(ct_bio$treat,levels=c('C','JL','JH','FL','FH','ML','MH'))#,labels=c("Control","January; 4ft","January; 6ft","February; 4ft","February; 6ft","March; 4ft","March; 6ft"))
 
-boxplot(ct_bio$finalP~ct_bio$treat)
+boxplot(ct_bio$bio~ct_bio$treat)
 #Plantcount ANOVA
-summary(aov((ct_bio$initialP-ct_bio$finalP)~ct_bio$treat+ct_bio$initialP))
+summary(aov((ct_bio$initialP-ct_bio$finalP)~ct_bio$initialP+ct_bio$treat))
 #Stem count anova
-summary(aov((ct_bio$finalS)~ct_bio$treat+ct_bio$initialP))
+summary(aov((ct_bio$finalS)~ct_bio$initialP+ct_bio$treat))
 #Biomass anova
-summary(aov((ct_bio$bio)~ct_bio$treat+ct_bio$initialP))
+summary(aov((ct_bio$bio)~ct_bio$initialP+ct_bio$treat))
 
 melt2=melt(ct_bio, id.vars=c("treat"))
 means2.sem <- ddply(melt2, c("treat","variable"), summarise, mean=mean(value), sem=sd(value)/sqrt(length(value)))
 means2.sem <- transform(means2.sem, lower=mean-sem, upper=mean+sem)
 names(means2.sem) = c("treat","variable","mean","sem","lower","upper")
 means22.sem=means2.sem[which(means2.sem$variable == "bio"),] 
-aov_ct1=aov(data=ct_bio,bio~treat)
+aov_ct1=aov(data=ct_bio,bio~initialP+treat)
 #ct1=LSD.test(aov_ct1,"treat",p.adj="none",alpha=0.05) #n.s.
 
 melt3=melt(subset(ct_bio,select=-c(treat)),id.vars=c("water"))
@@ -334,21 +338,21 @@ aov_ct3=lm(data=subset(ct_bio,treat!="C"),bio~day)
 outct3=LSD.test(aov_ct3,"day",p.adj="none",alpha=0.05)
 
 #biomass by water*time
-numobs=data.frame(n=rep(9,7))
-watertrt=c("#33cccc","#339999","#336666","#339999","#336666","#339999","#336666")
+numobs=data.frame(n=rep(3,7))
+watertrt=c("#33cccc","#888888","#006666","#888888","#006666","#888888","#006666")
 ctbar=ggplot(means22.sem,aes(treat,mean))
-ctbar=ctbar+geom_bar(stat="identity",position="dodge",fill=(watertrt),width=0.5)+xlab("Timing and total applied water")
-ctbar=ctbar+ylab(bquote('Mean dry alfalfa biomass,'~tons-acre^-1~''))#ylab(bquote('Mean alfalfa biomass,'~g-m^-2~''))
-ctbar=ctbar+geom_errorbar(aes(ymax=upper,ymin=lower),position=position_dodge(0.5),width=0.2,data=means22.sem)+scale_y_continuous(expand=c(0.01,0),limits=c(0,0.5))
+ctbar=ctbar+geom_bar(stat="identity",position="dodge",width=0.5,fill=c("#888888"))+xlab("Timing and water application treatment")
+ctbar=ctbar+ylab(bquote('Mean dry alfalfa biomass, '~tons-acre^-1~''))#ylab(bquote('Mean alfalfa biomass,'~g-m^-2~''))
+ctbar=ctbar+geom_errorbar(aes(ymax=upper,ymin=lower),position=position_dodge(0.5),width=0.2,data=means22.sem,size=1)+scale_y_continuous(expand=c(0.01,0),limits=c(0,0.6))
 ctbar=ctbar+theme_classic()+theme(panel.border = element_rect(colour = "black", fill=NA, size=1),text = element_text(size=28),plot.margin = unit(c(1,1,1,1), "cm"),axis.title.y=element_text(margin=margin(0,20,0,0)),axis.title.x=element_text(margin=margin(20,0,0,0)))
-ctbar=ctbar+geom_text(inherit.aes=FALSE,data=numobs,aes(x=means22.sem$treat,y=0.1,label=paste("n=",n,sep="")),fontface="bold",size=10)
+#ctbar=ctbar+geom_text(inherit.aes=FALSE,data=numobs,aes(x=means22.sem$treat,y=0.1,label=paste("n=",n,sep="")),fontface="bold",size=10)
 ctbar
 ggsave("./figures/ct_biomass_bar_cut1_2015.pdf",ctbar,width = 40, height = 30, units = "cm")
 
 #biomass by water
 ctbar2=ggplot(means33.sem,aes(treat,mean))
 ctbar2=ctbar2+geom_bar(stat="identity",position="dodge",fill="cyan3",width=0.5)+xlab("Total applied water, ft")
-ctbar2=ctbar2+ylab(bquote('Mean alfalfa biomass,'~tons-acre^-1~''))#ylab(bquote('Mean alfalfa biomass,'~g-m^-2~''))
+ctbar2=ctbar2+ylab(bquote('Mean alfalfa biomass, '~tons-acre^-1~''))#ylab(bquote('Mean alfalfa biomass,'~g-m^-2~''))
 ctbar2=ctbar2+geom_errorbar(aes(ymax=upper,ymin=lower),position=position_dodge(0.5),width=0.4,data=means33.sem)
 ctbar2=ctbar2+theme(text = element_text(size=32),legend.position="none")+theme_classic()
 #ctbar2
@@ -371,6 +375,12 @@ ctbar3=ctbar3+theme(text = element_text(size=32),legend.position="none")+theme_c
 ```
 C TRACT alfalfa biomass from plots flooded at three different time intervals  during the winter. Plots recieved a 'low'treatment 4 ft (L) or 'high' 6 ft (H) amount of water during that interval with water applied in 1 ft/day events. Control (non-flooded) plots were included. The impacts of the flooding (timing or total applied volume) were not discernible based on the natural variation in the old stand at the site. The yield was low for all plots overall, but this was independent of treatment effects. 
 
+```{r}
+library(gridExtra)
+biocbine=grid.arrange(ctbar,cbar,ncol=2)
+ggsave("./figures/ct_sv_combinedbio_2015.pdf",biocbine,width = 48, height = 30, units = "cm")
+```
+
 
 ```{r,message=FALSE,echo=FALSE,warning=FALSE}
 #SETTINGS
@@ -381,7 +391,7 @@ PT_id = 2:21  # Range for columns containing pressure transducer data (20 transd
 T_id = 43:51  # Range for columns containing temperature data (9 thermistors)
 major_x = "1 week" #Increment between labeled gridlines
 minor_x = "1 day"  #Increment between minor gridlines
-origin_time="02/1/2015 0:00"
+origin_time = "02/1/2015 0:00"
 
 #Construct time series
 TIMESTAMP = as.POSIXct(strptime(foo[,1],"%m/%d/%Y %H:%M"))

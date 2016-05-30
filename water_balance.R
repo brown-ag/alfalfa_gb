@@ -63,8 +63,8 @@ volumes_recharged=vol_map[foo$event[foo_re],]$vol*foo$fraction[foo_re]/7.48/1000
 volumes_stored2=vol_map[foo$event[foo_stor],]$vol*foo$fraction[foo_stor]/7.48/1000
 plot(volumes_recharged~foo$event[foo_re], ylab="Feet of water")
 plot(volumes_stored2~foo$event[foo_stor], ylab="Feet of water")
-
-
+library(lubridate)
+yday(events$Date)
 depth_ratio=volumes_stored/volumes_stored2
 depth_ratio[depth_ratio<0]=NA
 plot(depth_ratio~foo$event[foo_stor])

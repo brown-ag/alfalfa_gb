@@ -495,3 +495,5 @@ statz=transform(statz,Etime=Tfic-Tarr)
 statz=transform(statz,DurRat=Etime/Idur)
 statz=transform(statz,Velocity=(Tarr-Ista)*15/depth/100/60)
 statz=transform(statz,Ksat=Velocity*0.5)
+
+statz

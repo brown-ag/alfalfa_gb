@@ -23,9 +23,9 @@ dfline=ggplot(df,aes(time,vwc))+
   geom_area(aes(y=subinit,fill=2,ymin=0.25,ymax=0.35))+
   geom_point()+
   geom_line()+
-  geom_text(aes(x=600,y=0.3125,label="Recharge",size=20),colour=rgb(1,1,1),fontface = "bold")+
-  geom_text(aes(x=600,y=yloc1,label="Soil water stored",size=20),colour=rgb(1,1,1),fontface = "bold")+
-  geom_text(aes(x=600,y=yloc2,label="Initial water content",size=20),colour=rgb(1,1,1),fontface = "bold")+
+  geom_text(aes(x=600,y=0.3125,label="Recharge",size=20),colour=rgb(1,1,1),fontface = "bold",,size=12)+
+  geom_text(aes(x=600,y=yloc1,label="Soil water stored",size=20),colour=rgb(1,1,1),fontface = "bold",size=12)+
+  geom_text(aes(x=600,y=yloc2,label="Initial water content",size=20),colour=rgb(1,1,1),fontface = "bold",size=12)+
   coord_cartesian(ylim = c(0.275,0.35),expand=c(0,0))+
   scale_x_continuous(expand=c(0,0))+
   xlab("Time, minutes")+
